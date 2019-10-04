@@ -4,10 +4,10 @@ import "github.com/e-zhydzetski/hlcup2017-travel/internal/x/xerror"
 
 type GetUserVisitsParams struct {
 	UserID     uint32
-	FromDate   int64
-	ToDate     int64
-	Country    string
-	ToDistance uint32
+	FromDate   *int64
+	ToDate     *int64
+	Country    *string
+	ToDistance *uint32
 }
 
 type UserVisit struct {
@@ -17,16 +17,16 @@ type UserVisit struct {
 }
 
 type UserVisits struct {
-	Visits []UserVisit
+	Visits []*UserVisit
 }
 
 type GetLocationAvgParams struct {
 	LocationID uint32
-	FromDate   int64
-	ToDate     int64
-	FromAge    uint
-	ToAge      uint
-	Gender     string
+	FromDate   *int64
+	ToDate     *int64
+	FromAge    *uint
+	ToAge      *uint
+	Gender     *string
 }
 
 type LocationAvg float32

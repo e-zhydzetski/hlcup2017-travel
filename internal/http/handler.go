@@ -25,12 +25,55 @@ func NewHandler(service domain.Service) http.Handler {
 		_ = json.NewEncoder(w).Encode(viewDTO)
 		return nil
 	}))
-	r.Get("/locations/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/users/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		idStr := chi.URLParam(r, "id")
+		if idStr == "new" { // create
+			var dto UserCreateDTO
+			err := json.NewDecoder(r.Body).Decode(&dto)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			return service.CreateUser(dto.toDomain())
+		}
 
-	})
-	r.Get("/visits/{id}", func(w http.ResponseWriter, r *http.Request) {
-
-	})
+		// update
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			return domain.ErrNotFound
+		}
+		var dto UserUpdateDTO
+		err = json.NewDecoder(r.Body).Decode(&dto)
+		if err != nil {
+			return domain.ErrIllegalArgument
+		}
+		return service.UpdateUser(uint32(id), dto.toDomain())
+	}))
+	r.Get("/locations/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
+		if err != nil {
+			return domain.ErrNotFound
+		}
+		loc, err := service.GetLocation(uint32(id))
+		if err != nil {
+			return err
+		}
+		viewDTO := newLocationViewDTOFromDomain(loc)
+		_ = json.NewEncoder(w).Encode(viewDTO)
+		return nil
+	}))
+	r.Get("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
+		if err != nil {
+			return domain.ErrNotFound
+		}
+		visit, err := service.GetVisit(uint32(id))
+		if err != nil {
+			return err
+		}
+		viewDTO := newVisitViewDTOFromDomain(visit)
+		_ = json.NewEncoder(w).Encode(viewDTO)
+		return nil
+	}))
 	return r
 }
 

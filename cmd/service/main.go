@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/http"
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/x/xhttp"
 	"log"
+
+	"github.com/e-zhydzetski/hlcup2017-travel/internal/http"
+	"github.com/e-zhydzetski/hlcup2017-travel/internal/options"
+	"github.com/e-zhydzetski/hlcup2017-travel/internal/x/xhttp"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
 	"github.com/e-zhydzetski/hlcup2017-travel/internal/dump"
@@ -12,6 +14,13 @@ import (
 
 func main() {
 	ctx := context.Background()
+
+	opt, err := options.NewOptionsFromFile("test/data/TRAIN/data/options.txt")
+	if err != nil {
+		log.Println("Can't load options:", err)
+		return
+	}
+	log.Println("Options:", *opt)
 
 	var service domain.Service
 	{
@@ -23,5 +32,5 @@ func main() {
 		service = domain.NewRepositoryFromDump(d.ToDomain())
 	}
 
-	xhttp.StartServer(ctx, ":80", http.NewHandler(service))
+	_ = xhttp.StartServer(ctx, ":80", http.NewHandler(service))
 }

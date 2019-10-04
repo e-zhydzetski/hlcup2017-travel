@@ -54,12 +54,26 @@ func (r Repository) CreateUser(createDTO *UserCreateDTO) error {
 	return nil
 }
 
-func (r Repository) UpdateUser(ID uint32, updateDTO *UserUpdateDTO) error {
-	_, ok := r.users[ID]
+func (r Repository) UpdateUser(id uint32, updateDTO *UserUpdateDTO) error {
+	u, ok := r.users[id]
 	if !ok {
 		return ErrNotFound
 	}
-	//TODO make update
+	if updateDTO.Email != nil {
+		u.Email = *updateDTO.Email
+	}
+	if updateDTO.FirstName != nil {
+		u.FirstName = *updateDTO.FirstName
+	}
+	if updateDTO.LastName != nil {
+		u.LastName = *updateDTO.LastName
+	}
+	if updateDTO.Gender != nil {
+		u.Gender = *updateDTO.Gender
+	}
+	if updateDTO.BirthDate != nil {
+		u.BirthDate = *updateDTO.BirthDate
+	}
 	return nil
 }
 
@@ -81,12 +95,23 @@ func (r Repository) CreateLocation(createDTO *LocationCreateDTO) error {
 	return nil
 }
 
-func (r Repository) UpdateLocation(ID uint32, updateDTO *LocationUpdateDTO) error {
-	_, ok := r.locations[ID]
+func (r Repository) UpdateLocation(id uint32, updateDTO *LocationUpdateDTO) error {
+	l, ok := r.locations[id]
 	if !ok {
 		return ErrNotFound
 	}
-	//TODO make update
+	if updateDTO.Place != nil {
+		l.Place = *updateDTO.Place
+	}
+	if updateDTO.Country != nil {
+		l.Country = *updateDTO.Country
+	}
+	if updateDTO.City != nil {
+		l.City = *updateDTO.City
+	}
+	if updateDTO.Place != nil {
+		l.Distance = *updateDTO.Distance
+	}
 	return nil
 }
 
@@ -108,12 +133,23 @@ func (r Repository) CreateVisit(createDTO *VisitCreateDTO) error {
 	return nil
 }
 
-func (r Repository) UpdateVisit(ID uint32, updateDTO *VisitUpdateDTO) error {
-	_, ok := r.visits[ID]
+func (r Repository) UpdateVisit(id uint32, updateDTO *VisitUpdateDTO) error {
+	v, ok := r.visits[id]
 	if !ok {
 		return ErrNotFound
 	}
-	//TODO make update
+	if updateDTO.LocationID != nil {
+		v.LocationID = *updateDTO.LocationID
+	}
+	if updateDTO.UserID != nil {
+		v.UserID = *updateDTO.UserID
+	}
+	if updateDTO.VisitedAt != nil {
+		v.VisitedAt = *updateDTO.VisitedAt
+	}
+	if updateDTO.Mark != nil {
+		v.Mark = *updateDTO.Mark
+	}
 	return nil
 }
 
@@ -126,9 +162,10 @@ func (r Repository) GetVisit(id uint32) (*Visit, error) {
 }
 
 func (r Repository) GetUserVisits(params *GetUserVisitsParams) (*UserVisits, error) {
-	panic("implement me")
+	return &UserVisits{Visits: []*UserVisit{}}, nil
 }
 
 func (r Repository) GetLocationAvg(params *GetLocationAvgParams) (*LocationAvg, error) {
-	panic("implement me")
+	avg := LocationAvg(0)
+	return &avg, nil
 }
