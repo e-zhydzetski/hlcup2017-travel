@@ -3,16 +3,17 @@ package config
 import (
 	"bytes"
 	"io"
+	"strings"
 )
 
-type TokenizedReadCloser struct {
-	source io.ReadCloser
+type TokenizedReader struct {
+	source io.Reader
 	buff   []byte
 	cur    []byte
 }
 
-func NewTokenizedReadCloser(source io.ReadCloser) *TokenizedReadCloser {
-	res := &TokenizedReadCloser{
+func NewTokenizedReader(source io.Reader) *TokenizedReader {
+	res := &TokenizedReader{
 		source: source,
 		buff:   make([]byte, 1024),
 	}
@@ -20,26 +21,26 @@ func NewTokenizedReadCloser(source io.ReadCloser) *TokenizedReadCloser {
 	return res
 }
 
-func (t *TokenizedReadCloser) ReadStringUntil(b byte) (string, error) {
-	s := ""
+func (t *TokenizedReader) ReadStringUntil(b byte) (string, error) {
+	s := strings.Builder{}
 	for {
 		i := bytes.IndexByte(t.cur, b)
 		if i >= 0 {
-			s += string(t.cur[:i])
+			s.Write(t.cur[:i])
 			t.cur = t.cur[i+1:]
 			break
 		}
-		s += string(t.cur)
+		s.Write(t.cur)
 		n, err := t.source.Read(t.buff)
 		if err != nil {
-			return s, err
+			return s.String(), err
 		}
 		t.cur = t.buff[:n]
 	}
-	return s, nil
+	return s.String(), nil
 }
 
-func (t *TokenizedReadCloser) Read(res []byte) (int, error) {
+func (t *TokenizedReader) Read(res []byte) (int, error) {
 	size := len(res)
 	var curSize int
 	if size == 0 {
@@ -63,10 +64,4 @@ func (t *TokenizedReadCloser) Read(res []byte) (int, error) {
 		t.cur = t.buff[:n]
 	}
 	return curSize, nil
-}
-
-func (t *TokenizedReadCloser) Close() error {
-	t.buff = nil
-	t.cur = nil
-	return t.source.Close()
 }

@@ -1,9 +1,9 @@
-140 GET:/locations/<entity_id>
+145 GET:/locations/<entity_id>
 GET /locations/3558 HTTP/1.1
 Host: travels.com
 User-Agent: Technolab/1.0 (Docker; CentOS) Highload/1.0
 Accept: */*
-Connection: close
+Connection: keep-alive
 
 414 POST:/users/new
 POST /users/new?query_id=1 HTTP/1.1

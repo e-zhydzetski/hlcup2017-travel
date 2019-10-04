@@ -2,9 +2,10 @@ package test
 
 import (
 	"io"
-	"io/ioutil"
 	"net"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/internal/test/internal/config"
 )
@@ -15,10 +16,12 @@ type AmmoEntry struct {
 }
 
 type AnswerEntry struct {
-	Method string
-	URL    string
-	Code   int
-	Body   []byte
+	Code int
+	Body []byte
+}
+
+func (a *AnswerEntry) String() string {
+	return strconv.Itoa(a.Code) + ": " + string(a.Body)
 }
 
 type Case struct {
@@ -26,11 +29,10 @@ type Case struct {
 	Answer AnswerEntry
 }
 
-func ReadAmmo(source io.ReadCloser) ([]AmmoEntry, error) {
-	tf := config.NewTokenizedReadCloser(source)
-	defer tf.Close()
+func ReadAmmo(source io.Reader) ([]*AmmoEntry, error) {
+	tf := config.NewTokenizedReader(source)
 
-	var res []AmmoEntry
+	var res []*AmmoEntry
 
 	for {
 		s, err := tf.ReadStringUntil(' ')
@@ -42,7 +44,7 @@ func ReadAmmo(source io.ReadCloser) ([]AmmoEntry, error) {
 		req := make([]byte, size)
 		_, _ = tf.Read(req)
 
-		a := AmmoEntry{
+		a := &AmmoEntry{
 			Kind:    kind,
 			Request: req,
 		}
@@ -52,15 +54,50 @@ func ReadAmmo(source io.ReadCloser) ([]AmmoEntry, error) {
 	return res, nil
 }
 
-func SendRawRequest(addr string, request []byte) ([]byte, error) {
+func SendRawRequest(addr string, ammo *AmmoEntry) (*AnswerEntry, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
+	_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
 	defer conn.Close()
-	_, err = conn.Write(request)
+	_, err = conn.Write(ammo.Request)
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(conn) // TODO fix lock on keep-alive, analyze content-length, read and close connection
+
+	var answer AnswerEntry
+
+	tr := config.NewTokenizedReader(conn)
+	cl := 0
+	for {
+		s, err := tr.ReadStringUntil('\n')
+		if err != nil {
+			return nil, err
+		}
+		if s == "\r" {
+			break
+		}
+		if strings.HasPrefix(s, "HTTP/1.1 ") {
+			s = strings.TrimPrefix(s, "HTTP/1.1 ")
+			s = s[:3]
+			if answer.Code, err = strconv.Atoi(s); err != nil {
+				answer.Code = 0
+			}
+		}
+		if strings.HasPrefix(s, "Content-Length:") {
+			s = strings.TrimPrefix(s, "Content-Length:")
+			s = strings.TrimSpace(s)
+			if cl, err = strconv.Atoi(s); err != nil {
+				cl = 0
+			}
+		}
+	}
+	respBody := make([]byte, cl)
+	_, err = tr.Read(respBody)
+	if err != nil {
+		return nil, err
+	}
+	answer.Body = respBody
+	return &answer, nil
 }
