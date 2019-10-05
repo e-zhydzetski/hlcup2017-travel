@@ -33,20 +33,28 @@ func NewHandler(service domain.Service) http.Handler {
 			if err != nil {
 				return domain.ErrIllegalArgument
 			}
-			return service.CreateUser(dto.toDomain())
+			err = service.CreateUser(dto.toDomain())
+			if err != nil {
+				return err
+			}
+		} else { // update
+			id, err := strconv.ParseUint(idStr, 10, 32)
+			if err != nil {
+				return domain.ErrNotFound
+			}
+			var dto UserUpdateDTO
+			err = json.NewDecoder(r.Body).Decode(&dto)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			err = service.UpdateUser(uint32(id), dto.toDomain())
+			if err != nil {
+				return err
+			}
 		}
 
-		// update
-		id, err := strconv.ParseUint(idStr, 10, 32)
-		if err != nil {
-			return domain.ErrNotFound
-		}
-		var dto UserUpdateDTO
-		err = json.NewDecoder(r.Body).Decode(&dto)
-		if err != nil {
-			return domain.ErrIllegalArgument
-		}
-		return service.UpdateUser(uint32(id), dto.toDomain())
+		_, _ = w.Write([]byte("{}"))
+		return nil
 	}))
 	r.Get("/locations/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
