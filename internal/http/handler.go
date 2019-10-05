@@ -82,6 +82,51 @@ func NewHandler(service domain.Service) http.Handler {
 		_ = json.NewEncoder(w).Encode(viewDTO)
 		return nil
 	}))
+	r.Get("/users/{id}/visits", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		params := &domain.GetUserVisitsParams{}
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
+		if err != nil {
+			return domain.ErrNotFound
+		}
+		params.UserID = uint32(id)
+		q := r.URL.Query()
+		fromDate := q.Get("fromDate")
+		if fromDate != "" {
+			d, err := strconv.ParseInt(fromDate, 10, 64)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			params.FromDate = &d
+		}
+		toDate := q.Get("toDate")
+		if toDate != "" {
+			d, err := strconv.ParseInt(toDate, 10, 64)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			params.ToDate = &d
+		}
+		country := q.Get("country")
+		if country != "" {
+			params.Country = &country
+		}
+		toDist := q.Get("toDistance")
+		if toDist != "" {
+			t, err := strconv.ParseUint(toDist, 10, 32)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			d := uint32(t)
+			params.ToDistance = &d
+		}
+		visits, err := service.GetUserVisits(params)
+		if err != nil {
+			return err
+		}
+		dto := newUserVisitsDTOFromDomain(visits)
+		_ = json.NewEncoder(w).Encode(dto)
+		return nil
+	}))
 	return r
 }
 

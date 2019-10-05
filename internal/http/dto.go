@@ -125,3 +125,27 @@ func newVisitViewDTOFromDomain(d *domain.Visit) *VisitViewDTO {
 		Mark:       d.Mark,
 	}
 }
+
+type UserVisitDTO struct {
+	Mark      int    `json:"mark"`
+	VisitedAt int64  `json:"visited_at"`
+	Place     string `json:"place"`
+}
+
+type UserVisitsDTO struct {
+	Visits []*UserVisitDTO `json:"visits"`
+}
+
+func newUserVisitsDTOFromDomain(d *domain.UserVisits) *UserVisitsDTO {
+	visitsDTO := &UserVisitsDTO{
+		Visits: make([]*UserVisitDTO, len(d.Visits)),
+	}
+	for i, v := range d.Visits {
+		visitsDTO.Visits[i] = &UserVisitDTO{
+			Mark:      v.Mark,
+			VisitedAt: v.VisitedAt,
+			Place:     v.Place,
+		}
+	}
+	return visitsDTO
+}

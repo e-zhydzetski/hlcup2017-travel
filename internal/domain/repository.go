@@ -1,6 +1,9 @@
 package domain
 
-import "log"
+import (
+	"log"
+	"sort"
+)
 
 type Dump struct {
 	Users     []*UserCreateDTO
@@ -162,7 +165,41 @@ func (r Repository) GetVisit(id uint32) (*Visit, error) {
 }
 
 func (r Repository) GetUserVisits(params *GetUserVisitsParams) (*UserVisits, error) {
-	return &UserVisits{Visits: []*UserVisit{}}, nil
+	_, ok := r.users[params.UserID]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	visits := []*UserVisit{}
+	for _, v := range r.visits {
+		if v.UserID != params.UserID {
+			continue
+		}
+		if params.FromDate != nil && v.VisitedAt <= *params.FromDate {
+			continue
+		}
+		if params.ToDate != nil && v.VisitedAt >= *params.ToDate {
+			continue
+		}
+		l := r.locations[v.LocationID]
+		if params.Country != nil && *params.Country != l.Country {
+			continue
+		}
+		if params.ToDistance != nil && l.Distance >= *params.ToDistance {
+			continue
+		}
+		visits = append(visits, &UserVisit{
+			Mark:      v.Mark,
+			VisitedAt: v.VisitedAt,
+			Place:     l.Place,
+		})
+	}
+
+	sort.Slice(visits, func(i, j int) bool {
+		return visits[i].VisitedAt < visits[j].VisitedAt
+	})
+
+	return &UserVisits{Visits: visits}, nil
 }
 
 func (r Repository) GetLocationAvg(params *GetLocationAvgParams) (*LocationAvg, error) {
