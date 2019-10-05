@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/test/internal/reader"
+	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/reader"
 )
 
 type AmmoEntry struct {

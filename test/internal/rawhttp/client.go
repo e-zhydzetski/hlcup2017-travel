@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/test/internal/reader"
+	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/reader"
 )
 
 // SendRequest returns code, body, error

@@ -1,4 +1,4 @@
-package e2e
+package test
 
 import (
 	"bytes"
@@ -7,15 +7,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/test/internal/helpers"
+	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/helpers"
+	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/rawhttp"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/test/internal/rawhttp"
 )
 
 func TestE2E(t *testing.T) {
-	data, err := ioutil.ReadFile("../../../test/data/TRAIN/ammo/phase_1_get.ammo")
+	data, err := ioutil.ReadFile("data/TRAIN/ammo/phase_1_get.ammo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,7 +24,7 @@ func TestE2E(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err = ioutil.ReadFile("../../../test/data/TRAIN/answers/phase_1_get.answ")
+	data, err = ioutil.ReadFile("data/TRAIN/answers/phase_1_get.answ")
 	if err != nil {
 		t.Fatal(err)
 	}
