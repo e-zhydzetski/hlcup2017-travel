@@ -2,10 +2,13 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"strconv"
 	"testing"
+
+	"github.com/e-zhydzetski/hlcup2017-travel/internal/app"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/helpers"
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/rawhttp"
@@ -14,6 +17,16 @@ import (
 )
 
 func TestE2E(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	service := app.Service{
+		ListenAddr:  ":8080",
+		OptionsFile: "data/TRAIN/data/options.txt",
+		DumpFolder:  "data/TRAIN/data",
+	}
+	go service.Start(ctx)
+
 	data, err := ioutil.ReadFile("data/TRAIN/ammo/phase_1_get.ammo")
 	if err != nil {
 		t.Fatal(err)
@@ -38,12 +51,14 @@ func TestE2E(t *testing.T) {
 		t.Fatal("Ammo incompatible with answers. Ammo size:", len(ammo), ", answers size:", len(answers))
 	}
 
+	// TODO maybe check port listening (health check) before test requests
+
 	for i := range ammo {
 		bullet := ammo[i]
 		answer := answers[i]
 
 		t.Run(strconv.Itoa(i)+": "+answer.Name, func(t *testing.T) {
-			code, resp, err := rawhttp.SendRequest("127.0.0.1:80", bullet.Request)
+			code, resp, err := rawhttp.SendRequest("127.0.0.1:8080", bullet.Request)
 			if err != nil {
 				t.Fatal(err)
 			}
