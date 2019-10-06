@@ -131,7 +131,7 @@ func (r Repository) UpdateLocation(id uint32, updateDTO *LocationUpdateDTO) erro
 	if updateDTO.City != nil {
 		l.City = *updateDTO.City
 	}
-	if updateDTO.Place != nil {
+	if updateDTO.Distance != nil {
 		l.Distance = *updateDTO.Distance
 	}
 	return nil

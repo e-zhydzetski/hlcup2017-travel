@@ -11,7 +11,10 @@ type UserCreateDTO struct {
 	BirthDate int64  `json:"birth_date"`
 }
 
-func (d *UserCreateDTO) toDomain() *domain.UserCreateDTO {
+func (d *UserCreateDTO) toValidDomain() (*domain.UserCreateDTO, error) {
+	if d.ID == 0 {
+		return nil, domain.ErrIllegalArgument
+	}
 	return &domain.UserCreateDTO{
 		ID:        d.ID,
 		Email:     d.Email,
@@ -19,25 +22,52 @@ func (d *UserCreateDTO) toDomain() *domain.UserCreateDTO {
 		LastName:  d.LastName,
 		Gender:    d.Gender,
 		BirthDate: d.BirthDate,
-	}
+	}, nil
 }
 
-type UserUpdateDTO struct {
-	Email     *string `json:"email"`
-	FirstName *string `json:"first_name"`
-	LastName  *string `json:"last_name"`
-	Gender    *string `json:"gender"`
-	BirthDate *int64  `json:"birth_date"`
-}
+type UserUpdateDTO map[string]interface{}
 
-func (d *UserUpdateDTO) toDomain() *domain.UserUpdateDTO {
-	return &domain.UserUpdateDTO{
-		Email:     d.Email,
-		FirstName: d.FirstName,
-		LastName:  d.LastName,
-		Gender:    d.Gender,
-		BirthDate: d.BirthDate,
+func (d UserUpdateDTO) toValidDomain() (*domain.UserUpdateDTO, error) {
+	res := &domain.UserUpdateDTO{}
+	if _, exists := d["id"]; exists {
+		return nil, domain.ErrIllegalArgument
 	}
+	if val, exists := d["email"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.Email = &s
+	}
+	if val, exists := d["first_name"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.FirstName = &s
+	}
+	if val, exists := d["last_name"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.LastName = &s
+	}
+	if val, exists := d["gender"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.Gender = &s
+	}
+	if val, exists := d["birth_date"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		i := int64(val.(float64))
+		res.BirthDate = &i
+	}
+	return res, nil
 }
 
 type UserViewDTO struct {
@@ -68,11 +98,55 @@ type LocationCreateDTO struct {
 	Distance uint32 `json:"distance"`
 }
 
-type LocationUpdateDTO struct {
-	Place    *string `json:"place"`
-	Country  *string `json:"country"`
-	City     *string `json:"city"`
-	Distance *uint32 `json:"distance"`
+func (d *LocationCreateDTO) toValidDomain() (*domain.LocationCreateDTO, error) {
+	if d.ID == 0 {
+		return nil, domain.ErrIllegalArgument
+	}
+	return &domain.LocationCreateDTO{
+		ID:       d.ID,
+		Place:    d.Place,
+		Country:  d.Country,
+		City:     d.City,
+		Distance: d.Distance,
+	}, nil
+}
+
+type LocationUpdateDTO map[string]interface{}
+
+func (d LocationUpdateDTO) toValidDomain() (*domain.LocationUpdateDTO, error) {
+	res := &domain.LocationUpdateDTO{}
+	if _, exists := d["id"]; exists {
+		return nil, domain.ErrIllegalArgument
+	}
+	if val, exists := d["place"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.Place = &s
+	}
+	if val, exists := d["country"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.Country = &s
+	}
+	if val, exists := d["city"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		s := val.(string)
+		res.City = &s
+	}
+	if val, exists := d["distance"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		i := uint32(val.(float64))
+		res.Distance = &i
+	}
+	return res, nil
 }
 
 type LocationViewDTO struct {
@@ -101,11 +175,55 @@ type VisitCreateDTO struct {
 	Mark       int    `json:"mark"`
 }
 
-type VisitUpdateDTO struct {
-	LocationID *uint32 `json:"location"`
-	UserID     *uint32 `json:"user"`
-	VisitedAt  *int64  `json:"visited_at"`
-	Mark       *int    `json:"mark"`
+func (d *VisitCreateDTO) toValidDomain() (*domain.VisitCreateDTO, error) {
+	if d.ID == 0 {
+		return nil, domain.ErrIllegalArgument
+	}
+	return &domain.VisitCreateDTO{
+		ID:         d.ID,
+		LocationID: d.LocationID,
+		UserID:     d.UserID,
+		VisitedAt:  d.VisitedAt,
+		Mark:       d.Mark,
+	}, nil
+}
+
+type VisitUpdateDTO map[string]interface{}
+
+func (d VisitUpdateDTO) toValidDomain() (*domain.VisitUpdateDTO, error) {
+	res := &domain.VisitUpdateDTO{}
+	if _, exists := d["id"]; exists {
+		return nil, domain.ErrIllegalArgument
+	}
+	if val, exists := d["location"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		i := uint32(val.(float64))
+		res.LocationID = &i
+	}
+	if val, exists := d["user"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		i := uint32(val.(float64))
+		res.UserID = &i
+	}
+	if val, exists := d["visited_at"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		i := int64(val.(float64))
+		res.VisitedAt = &i
+	}
+	if val, exists := d["mark"]; exists {
+		if val == nil {
+			return nil, domain.ErrIllegalArgument
+		}
+		i := int(val.(float64))
+		res.Mark = &i
+	}
+	return res, nil
 }
 
 type VisitViewDTO struct {

@@ -32,7 +32,11 @@ func NewHandler(service domain.Service) http.Handler {
 			if err != nil {
 				return domain.ErrIllegalArgument
 			}
-			err = service.CreateUser(dto.toDomain())
+			create, err := dto.toValidDomain()
+			if err != nil {
+				return err
+			}
+			err = service.CreateUser(create)
 			if err != nil {
 				return err
 			}
@@ -46,7 +50,11 @@ func NewHandler(service domain.Service) http.Handler {
 			if err != nil {
 				return domain.ErrIllegalArgument
 			}
-			err = service.UpdateUser(uint32(id), dto.toDomain())
+			update, err := dto.toValidDomain()
+			if err != nil {
+				return err
+			}
+			err = service.UpdateUser(uint32(id), update)
 			if err != nil {
 				return err
 			}
@@ -67,6 +75,45 @@ func NewHandler(service domain.Service) http.Handler {
 		viewDTO := newLocationViewDTOFromDomain(loc)
 		return json.NewEncoder(w).Encode(viewDTO)
 	}))
+	r.Post("/locations/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		idStr := chi.URLParam(r, "id")
+		if idStr == "new" { // create
+			var dto LocationCreateDTO
+			err := json.NewDecoder(r.Body).Decode(&dto)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			create, err := dto.toValidDomain()
+			if err != nil {
+				return err
+			}
+			err = service.CreateLocation(create)
+			if err != nil {
+				return err
+			}
+		} else { // update
+			id, err := strconv.ParseUint(idStr, 10, 32)
+			if err != nil {
+				return domain.ErrNotFound
+			}
+			var dto LocationUpdateDTO
+			err = json.NewDecoder(r.Body).Decode(&dto)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			update, err := dto.toValidDomain()
+			if err != nil {
+				return err
+			}
+			err = service.UpdateLocation(uint32(id), update)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, _ = w.Write([]byte("{}"))
+		return nil
+	}))
 	r.Get("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
@@ -78,6 +125,45 @@ func NewHandler(service domain.Service) http.Handler {
 		}
 		viewDTO := newVisitViewDTOFromDomain(visit)
 		return json.NewEncoder(w).Encode(viewDTO)
+	}))
+	r.Post("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		idStr := chi.URLParam(r, "id")
+		if idStr == "new" { // create
+			var dto VisitCreateDTO
+			err := json.NewDecoder(r.Body).Decode(&dto)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			create, err := dto.toValidDomain()
+			if err != nil {
+				return err
+			}
+			err = service.CreateVisit(create)
+			if err != nil {
+				return err
+			}
+		} else { // update
+			id, err := strconv.ParseUint(idStr, 10, 32)
+			if err != nil {
+				return domain.ErrNotFound
+			}
+			var dto VisitUpdateDTO
+			err = json.NewDecoder(r.Body).Decode(&dto)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			update, err := dto.toValidDomain()
+			if err != nil {
+				return err
+			}
+			err = service.UpdateVisit(uint32(id), update)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, _ = w.Write([]byte("{}"))
+		return nil
 	}))
 	r.Get("/users/{id}/visits", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		params := &domain.GetUserVisitsParams{}
