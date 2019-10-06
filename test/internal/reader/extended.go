@@ -52,16 +52,12 @@ func (e *ExtendedReader) Read(res []byte) (int, error) {
 		curSize = size
 	} else {
 		curSize = copy(res, e.cur)
+		e.cur = e.buff[len(e.buff):]
 		n, err := e.source.Read(res[curSize:])
 		curSize += n
 		if err != nil {
 			return curSize, err
 		}
-		n, err = e.source.Read(e.buff)
-		if err != nil {
-			return curSize, err
-		}
-		e.cur = e.buff[:n]
 	}
 	return curSize, nil
 }
