@@ -149,3 +149,13 @@ func newUserVisitsDTOFromDomain(d *domain.UserVisits) *UserVisitsDTO {
 	}
 	return visitsDTO
 }
+
+type LocationAvgDTO struct {
+	Avg domain.LocationAvg `json:"avg"`
+}
+
+func newLocationAvgDTOFromDomain(avg *domain.LocationAvg) *LocationAvgDTO {
+	return &LocationAvgDTO{
+		Avg: *avg,
+	}
+}

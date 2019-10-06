@@ -33,7 +33,9 @@ func (s *Service) Start(ctx context.Context) error {
 		if err != nil {
 			return xerror.Combine(err, errors.New("can't load dump"))
 		}
-		service = domain.NewRepositoryFromDump(d.ToDomain())
+		repository := domain.NewRepositoryFromDump(d.ToDomain())
+		repository.Opt = *opt
+		service = repository
 	}
 
 	return xhttp.StartServer(ctx, s.ListenAddr, http.NewHandler(service))

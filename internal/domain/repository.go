@@ -2,7 +2,10 @@ package domain
 
 import (
 	"log"
+	"math"
 	"sort"
+
+	"github.com/e-zhydzetski/hlcup2017-travel/internal/options"
 )
 
 type Dump struct {
@@ -42,6 +45,8 @@ func NewRepositoryFromDump(dump *Dump) *Repository {
 }
 
 type Repository struct {
+	Opt options.Options
+
 	users     map[uint32]*User
 	locations map[uint32]*Location
 	visits    map[uint32]*Visit
@@ -202,7 +207,62 @@ func (r Repository) GetUserVisits(params *GetUserVisitsParams) (*UserVisits, err
 	return &UserVisits{Visits: visits}, nil
 }
 
+const secondsInYear = 31556952
+
 func (r Repository) GetLocationAvg(params *GetLocationAvgParams) (*LocationAvg, error) {
+	_, ok := r.locations[params.LocationID]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	var paramFromBirthDate *int64
+	if params.ToAge != nil {
+		b := r.Opt.Now - int64(*params.ToAge*secondsInYear)
+		paramFromBirthDate = &b
+	}
+
+	var paramToBirthDate *int64
+	if params.FromAge != nil {
+		b := r.Opt.Now - int64(*params.FromAge*secondsInYear)
+		paramToBirthDate = &b
+	}
+
+	sum := 0
+	count := 0
+	for _, v := range r.visits {
+		if v.LocationID != params.LocationID {
+			continue
+		}
+		if params.FromDate != nil && v.VisitedAt <= *params.FromDate {
+			continue
+		}
+		if params.ToDate != nil && v.VisitedAt >= *params.ToDate {
+			continue
+		}
+		u := r.users[v.UserID]
+		if paramFromBirthDate != nil && u.BirthDate <= *paramFromBirthDate {
+			continue
+		}
+		if paramToBirthDate != nil && u.BirthDate >= *paramToBirthDate {
+			continue
+		}
+		if params.Gender != nil && u.Gender != *params.Gender {
+			continue
+		}
+
+		sum += v.Mark
+		count++
+	}
+
 	avg := LocationAvg(0)
+	if count == 0 {
+		return &avg, nil
+	}
+
+	// magic to get exactly 5 precision
+	sum *= 1000000 // 10^6
+	avg6 := sum / count
+	avg5 := math.Round(float64(avg6) / 10)
+	avg = LocationAvg(avg5 / 100000)
 	return &avg, nil
 }

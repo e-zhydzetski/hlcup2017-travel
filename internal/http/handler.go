@@ -123,6 +123,62 @@ func NewHandler(service domain.Service) http.Handler {
 		dto := newUserVisitsDTOFromDomain(visits)
 		return json.NewEncoder(w).Encode(dto)
 	}))
+	r.Get("/locations/{id}/avg", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+		params := &domain.GetLocationAvgParams{}
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
+		if err != nil {
+			return domain.ErrNotFound
+		}
+		params.LocationID = uint32(id)
+		q := r.URL.Query()
+		fromDate := q.Get("fromDate")
+		if fromDate != "" {
+			d, err := strconv.ParseInt(fromDate, 10, 64)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			params.FromDate = &d
+		}
+		toDate := q.Get("toDate")
+		if toDate != "" {
+			d, err := strconv.ParseInt(toDate, 10, 64)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			params.ToDate = &d
+		}
+		fromAge := q.Get("fromAge")
+		if fromAge != "" {
+			t, err := strconv.ParseUint(fromAge, 10, 32)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			d := uint(t)
+			params.FromAge = &d
+		}
+		toAge := q.Get("toAge")
+		if toAge != "" {
+			t, err := strconv.ParseUint(toAge, 10, 32)
+			if err != nil {
+				return domain.ErrIllegalArgument
+			}
+			d := uint(t)
+			params.ToAge = &d
+		}
+		gender := q.Get("gender")
+		if gender != "" {
+			if gender != "m" && gender != "f" {
+				return domain.ErrIllegalArgument
+			}
+			params.Gender = &gender
+		}
+		avg, err := service.GetLocationAvg(params)
+		if err != nil {
+			return err
+		}
+		dto := newLocationAvgDTOFromDomain(avg)
+		return json.NewEncoder(w).Encode(dto)
+	}))
 	return r
 }
 
