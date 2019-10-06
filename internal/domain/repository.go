@@ -41,6 +41,10 @@ func NewRepositoryFromDump(dump *Dump) *Repository {
 
 	log.Println("Dump loaded to repository")
 
+	repo.buildIndexes()
+
+	log.Println("Indexes created")
+
 	return repo
 }
 
@@ -50,6 +54,16 @@ type Repository struct {
 	users     map[uint32]*User
 	locations map[uint32]*Location
 	visits    map[uint32]*Visit
+
+	// indexes
+	userVisits map[uint32][]uint32 // userId -> []visitId TODO maybe store inside User
+}
+
+func (r *Repository) buildIndexes() {
+	r.userVisits = make(map[uint32][]uint32, len(r.users))
+	for vID, v := range r.visits {
+		r.userVisits[v.UserID] = append(r.userVisits[v.UserID], vID)
+	}
 }
 
 func (r Repository) CreateUser(createDTO *UserCreateDTO) error {
@@ -176,10 +190,9 @@ func (r Repository) GetUserVisits(params *GetUserVisitsParams) (*UserVisits, err
 	}
 
 	visits := []*UserVisit{}
-	for _, v := range r.visits {
-		if v.UserID != params.UserID {
-			continue
-		}
+
+	for _, vID := range r.userVisits[params.UserID] {
+		v := r.visits[vID]
 		if params.FromDate != nil && v.VisitedAt <= *params.FromDate {
 			continue
 		}
