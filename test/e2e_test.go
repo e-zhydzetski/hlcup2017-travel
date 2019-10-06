@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/app"
+	"github.com/stretchr/testify/require"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/helpers"
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/rawhttp"
 
-	"github.com/stretchr/testify/require"
+	"github.com/e-zhydzetski/hlcup2017-travel/internal/app"
 )
 
 func TestE2E(t *testing.T) {
@@ -27,7 +27,13 @@ func TestE2E(t *testing.T) {
 	}
 	go service.Start(ctx)
 
-	data, err := ioutil.ReadFile("data/TRAIN/ammo/phase_1_get.ammo")
+	executeTestPhase(t, "phase_1_get")
+	executeTestPhase(t, "phase_2_post")
+	executeTestPhase(t, "phase_3_get")
+}
+
+func executeTestPhase(t *testing.T, phaseName string) {
+	data, err := ioutil.ReadFile("data/TRAIN/ammo/" + phaseName + ".ammo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +43,7 @@ func TestE2E(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err = ioutil.ReadFile("data/TRAIN/answers/phase_1_get.answ")
+	data, err = ioutil.ReadFile("data/TRAIN/answers/" + phaseName + ".answ")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +63,7 @@ func TestE2E(t *testing.T) {
 		bullet := ammo[i]
 		answer := answers[i]
 
-		t.Run(strconv.Itoa(i)+": "+answer.Name, func(t *testing.T) {
+		t.Run(phaseName+"_"+strconv.Itoa(i)+"_"+answer.Name, func(t *testing.T) {
 			code, resp, err := rawhttp.SendRequest("127.0.0.1:8080", bullet.Request)
 			if err != nil {
 				t.Fatal(err)
