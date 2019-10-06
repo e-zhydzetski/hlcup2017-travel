@@ -22,8 +22,7 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		viewDTO := newUserViewDTOFromDomain(user)
-		_ = json.NewEncoder(w).Encode(viewDTO)
-		return nil
+		return json.NewEncoder(w).Encode(viewDTO)
 	}))
 	r.Post("/users/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		idStr := chi.URLParam(r, "id")
@@ -66,8 +65,7 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		viewDTO := newLocationViewDTOFromDomain(loc)
-		_ = json.NewEncoder(w).Encode(viewDTO)
-		return nil
+		return json.NewEncoder(w).Encode(viewDTO)
 	}))
 	r.Get("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
@@ -79,8 +77,7 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		viewDTO := newVisitViewDTOFromDomain(visit)
-		_ = json.NewEncoder(w).Encode(viewDTO)
-		return nil
+		return json.NewEncoder(w).Encode(viewDTO)
 	}))
 	r.Get("/users/{id}/visits", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		params := &domain.GetUserVisitsParams{}
@@ -124,8 +121,7 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		dto := newUserVisitsDTOFromDomain(visits)
-		_ = json.NewEncoder(w).Encode(dto)
-		return nil
+		return json.NewEncoder(w).Encode(dto)
 	}))
 	return r
 }
