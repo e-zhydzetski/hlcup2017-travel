@@ -63,13 +63,23 @@ func TestE2E(t *testing.T) {
 				t.Fatal(err)
 			}
 			if answer.Code != code {
-				t.Error("Unexpected code. Expected", answer.Code, ", got", code)
+				t.Fatal("Unexpected code. Expected", answer.Code, ", got", code)
 			}
 			respMap := map[string]interface{}{}
-			_ = json.Unmarshal(resp, &respMap)
+			if len(resp) > 0 {
+				err = json.Unmarshal(resp, &respMap)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
 
 			validMap := map[string]interface{}{}
-			_ = json.Unmarshal(answer.Body, &validMap)
+			if len(answer.Body) > 0 {
+				err = json.Unmarshal(answer.Body, &validMap)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
 
 			require.Equal(t, validMap, respMap)
 		})
