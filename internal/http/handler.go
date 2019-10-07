@@ -12,6 +12,7 @@ import (
 
 func NewHandler(service domain.Service) http.Handler {
 	r := chi.NewRouter()
+	r.Use(SetRequiredHeaders())
 	r.Get("/users/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
@@ -22,6 +23,8 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		viewDTO := newUserViewDTOFromDomain(user)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		return json.NewEncoder(w).Encode(viewDTO)
 	}))
 	r.Post("/users/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
@@ -60,6 +63,7 @@ func NewHandler(service domain.Service) http.Handler {
 			}
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		_, _ = w.Write([]byte("{}"))
 		return nil
 	}))
@@ -73,6 +77,8 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		viewDTO := newLocationViewDTOFromDomain(loc)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		return json.NewEncoder(w).Encode(viewDTO)
 	}))
 	r.Post("/locations/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
@@ -111,6 +117,7 @@ func NewHandler(service domain.Service) http.Handler {
 			}
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		_, _ = w.Write([]byte("{}"))
 		return nil
 	}))
@@ -124,6 +131,8 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		viewDTO := newVisitViewDTOFromDomain(visit)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		return json.NewEncoder(w).Encode(viewDTO)
 	}))
 	r.Post("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
@@ -162,6 +171,7 @@ func NewHandler(service domain.Service) http.Handler {
 			}
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		_, _ = w.Write([]byte("{}"))
 		return nil
 	}))
@@ -207,6 +217,8 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		dto := newUserVisitsDTOFromDomain(visits)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		return json.NewEncoder(w).Encode(dto)
 	}))
 	r.Get("/locations/{id}/avg", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
@@ -263,6 +275,8 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		dto := newLocationAvgDTOFromDomain(avg)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		return json.NewEncoder(w).Encode(dto)
 	}))
 	return r
@@ -282,5 +296,18 @@ func ErrorAware(f func(http.ResponseWriter, *http.Request) error) http.HandlerFu
 				_, _ = w.Write([]byte(err.Error()))
 			}
 		}
+	}
+}
+
+func SetRequiredHeaders() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Server", "app")
+			connection := r.Header.Get("Connection")
+			if connection != "" {
+				w.Header().Set("Connection", connection)
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
 }

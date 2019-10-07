@@ -20,4 +20,5 @@ WORKDIR /app
 ENTRYPOINT ["./app"]
 ENV PORT 80
 EXPOSE $PORT
+ENV DOCKER 1
 COPY --from=builder /workspace/app ./app
