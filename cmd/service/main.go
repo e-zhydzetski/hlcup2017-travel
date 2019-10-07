@@ -10,8 +10,8 @@ func main() {
 	ctx := context.Background()
 	service := app.Service{
 		ListenAddr:  ":80",
-		OptionsFile: "test/data/TRAIN/data/options.txt",
-		DumpSource:  "test/data/TRAIN/data",
+		OptionsFile: "/tmp/data/options.txt",
+		DumpSource:  "/tmp/data/data.zip",
 	}
 	_ = service.Start(ctx)
 }
