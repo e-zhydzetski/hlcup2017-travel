@@ -11,6 +11,8 @@ import (
 )
 
 func NewHandler(service domain.Service) http.Handler {
+	emptyJSON := map[string]interface{}{}
+
 	r := chi.NewRouter()
 	r.Use(translateConnectionHeader())
 	r.Get("/users/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
@@ -60,7 +62,7 @@ func NewHandler(service domain.Service) http.Handler {
 				return err
 			}
 		}
-		return jsonResponse(w, map[string]interface{}{})
+		return jsonResponse(w, emptyJSON)
 	}))
 	r.Get("/locations/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
@@ -109,7 +111,7 @@ func NewHandler(service domain.Service) http.Handler {
 				return err
 			}
 		}
-		return jsonResponse(w, map[string]interface{}{})
+		return jsonResponse(w, emptyJSON)
 	}))
 	r.Get("/visits/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
@@ -158,7 +160,7 @@ func NewHandler(service domain.Service) http.Handler {
 				return err
 			}
 		}
-		return jsonResponse(w, map[string]interface{}{})
+		return jsonResponse(w, emptyJSON)
 	}))
 	r.Get("/users/{id}/visits", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		params := &domain.GetUserVisitsParams{}
