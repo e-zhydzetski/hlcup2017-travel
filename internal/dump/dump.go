@@ -1,8 +1,11 @@
 package dump
 
 import (
+	"archive/zip"
 	"encoding/json"
+	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
@@ -14,6 +17,46 @@ type Dump struct {
 	visits    []*Visit
 }
 
+func (d *Dump) load(name string, reader io.Reader) error {
+	if strings.HasPrefix(name, "users_") {
+		data, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return err
+		}
+		var list UserList
+		if err := json.Unmarshal(data, &list); err != nil {
+			return err
+		}
+		d.users = append(d.users, list.Users...)
+		return nil
+	}
+	if strings.HasPrefix(name, "locations_") {
+		data, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return err
+		}
+		var list LocationList
+		if err := json.Unmarshal(data, &list); err != nil {
+			return err
+		}
+		d.locations = append(d.locations, list.Locations...)
+		return nil
+	}
+	if strings.HasPrefix(name, "visits_") {
+		data, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return err
+		}
+		var list VisitList
+		if err := json.Unmarshal(data, &list); err != nil {
+			return err
+		}
+		d.visits = append(d.visits, list.Visits...)
+		return nil
+	}
+	return nil
+}
+
 func LoadFromFolder(path string) (*Dump, error) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -23,42 +66,38 @@ func LoadFromFolder(path string) (*Dump, error) {
 	dump := &Dump{}
 
 	for _, file := range files {
-		fileName := file.Name()
-		if strings.HasPrefix(fileName, "users_") {
-			data, err := ioutil.ReadFile(path + "/" + fileName)
-			if err != nil {
-				return nil, err
-			}
-			var list UserList
-			if err = json.Unmarshal(data, &list); err != nil {
-				return nil, err
-			}
-			dump.users = append(dump.users, list.Users...)
-			continue
+		f, err := os.Open(path + "/" + file.Name())
+		if err != nil {
+			return nil, err
 		}
-		if strings.HasPrefix(fileName, "locations_") {
-			data, err := ioutil.ReadFile(path + "/" + fileName)
-			if err != nil {
-				return nil, err
-			}
-			var list LocationList
-			if err = json.Unmarshal(data, &list); err != nil {
-				return nil, err
-			}
-			dump.locations = append(dump.locations, list.Locations...)
-			continue
+		err = dump.load(file.Name(), f)
+		_ = f.Close()
+		if err != nil {
+			return nil, err
 		}
-		if strings.HasPrefix(fileName, "visits_") {
-			data, err := ioutil.ReadFile(path + "/" + fileName)
-			if err != nil {
-				return nil, err
-			}
-			var list VisitList
-			if err = json.Unmarshal(data, &list); err != nil {
-				return nil, err
-			}
-			dump.visits = append(dump.visits, list.Visits...)
-			continue
+	}
+
+	return dump, nil
+}
+
+func LoadFromZip(path string) (*Dump, error) {
+	r, err := zip.OpenReader(path)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	dump := &Dump{}
+
+	for _, file := range r.File {
+		rc, err := file.Open()
+		if err != nil {
+			return nil, err
+		}
+		err = dump.load(file.Name, rc)
+		_ = rc.Close()
+		if err != nil {
+			return nil, err
 		}
 	}
 

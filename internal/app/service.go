@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/internal/x/xerror"
 
@@ -17,7 +18,7 @@ import (
 type Service struct {
 	ListenAddr  string
 	OptionsFile string
-	DumpFolder  string
+	DumpSource  string
 }
 
 func (s *Service) Start(ctx context.Context) error {
@@ -29,9 +30,15 @@ func (s *Service) Start(ctx context.Context) error {
 
 	var service domain.Service
 	{
-		d, err := dump.LoadFromFolder(s.DumpFolder)
-		if err != nil {
-			return xerror.Combine(err, errors.New("can't load dump"))
+		var d *dump.Dump
+		if strings.HasSuffix(s.DumpSource, ".zip") {
+			if d, err = dump.LoadFromZip(s.DumpSource); err != nil {
+				return xerror.Combine(err, errors.New("can't load dump from zip archive"))
+			}
+		} else {
+			if d, err = dump.LoadFromFolder(s.DumpSource); err != nil {
+				return xerror.Combine(err, errors.New("can't load dump from folder"))
+			}
 		}
 		repository := domain.NewRepositoryFromDump(d.ToDomain())
 		repository.Opt = *opt

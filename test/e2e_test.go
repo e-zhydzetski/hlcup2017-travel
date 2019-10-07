@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"net"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -17,23 +19,37 @@ import (
 )
 
 func TestE2E(t *testing.T) {
+	const level = "TRAIN"
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	service := app.Service{
 		ListenAddr:  ":8080",
-		OptionsFile: "data/TRAIN/data/options.txt",
-		DumpFolder:  "data/TRAIN/data",
+		OptionsFile: "data/" + level + "/data/options.txt",
+		DumpSource:  "data/" + level + "/data",
 	}
-	go service.Start(ctx)
+	go func() {
+		_ = service.Start(ctx)
+	}()
 
-	executeTestPhase(t, "phase_1_get")
-	executeTestPhase(t, "phase_2_post")
-	executeTestPhase(t, "phase_3_get")
+	for {
+		if conn, err := net.Dial("tcp", "127.0.0.1:8080"); err == nil {
+			conn.Close()
+			break
+		}
+		time.Sleep(time.Second)
+		t.Log("Wait server start listening...")
+	}
+	t.Log("Server is ready")
+
+	executeTestPhase(t, level, "phase_1_get")
+	executeTestPhase(t, level, "phase_2_post")
+	executeTestPhase(t, level, "phase_3_get")
 }
 
-func executeTestPhase(t *testing.T, phaseName string) {
-	data, err := ioutil.ReadFile("data/TRAIN/ammo/" + phaseName + ".ammo")
+func executeTestPhase(t *testing.T, level string, phaseName string) {
+	data, err := ioutil.ReadFile("data/" + level + "/ammo/" + phaseName + ".ammo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +59,7 @@ func executeTestPhase(t *testing.T, phaseName string) {
 		t.Fatal(err)
 	}
 
-	data, err = ioutil.ReadFile("data/TRAIN/answers/" + phaseName + ".answ")
+	data, err = ioutil.ReadFile("data/" + level + "/answers/" + phaseName + ".answ")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,8 +72,6 @@ func executeTestPhase(t *testing.T, phaseName string) {
 	if len(ammo) != len(answers) {
 		t.Fatal("Ammo incompatible with answers. Ammo size:", len(ammo), ", answers size:", len(answers))
 	}
-
-	// TODO maybe check port listening (health check) before test requests
 
 	for i := range ammo {
 		bullet := ammo[i]

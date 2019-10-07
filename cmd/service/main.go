@@ -11,7 +11,7 @@ func main() {
 	service := app.Service{
 		ListenAddr:  ":80",
 		OptionsFile: "test/data/TRAIN/data/options.txt",
-		DumpFolder:  "test/data/TRAIN/data",
+		DumpSource:  "test/data/TRAIN/data",
 	}
 	_ = service.Start(ctx)
 }
