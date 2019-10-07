@@ -1,6 +1,7 @@
 package rawhttp
 
 import (
+	"errors"
 	"net"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ func SendRequest(addr string, req []byte) (int, []byte, error) {
 	}
 
 	r := reader.NewExtendedReader(conn)
+	headers := map[string]struct{}{}
 	cl := 0
 	chunked := false
 	var code int
@@ -39,6 +41,7 @@ func SendRequest(addr string, req []byte) (int, []byte, error) {
 			code, _ = strconv.Atoi(s)
 			continue
 		}
+		headers[strings.Split(s, ":")[0]] = struct{}{}
 		if s == "Transfer-Encoding: chunked" {
 			chunked = true
 			continue
@@ -80,5 +83,18 @@ func SendRequest(addr string, req []byte) (int, []byte, error) {
 			return code, nil, err
 		}
 	}
+
+	// check after read to prevent brush in reader
+	if len(body) > 0 {
+		if _, exists := headers["Content-Type"]; !exists {
+			return code, body, errors.New("required header not exists: Content-Type")
+		}
+	}
+	for _, rh := range []string{"Content-Length", "Connection"} {
+		if _, exists := headers[rh]; !exists {
+			return code, body, errors.New("required header not exists: " + rh)
+		}
+	}
+
 	return code, body, nil
 }
