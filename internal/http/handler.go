@@ -12,8 +12,8 @@ import (
 
 func NewHandler(service domain.Service) http.Handler {
 	r := chi.NewRouter()
-	r.Use(SetRequiredHeaders())
-	r.Get("/users/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Use(translateConnectionHeader())
+	r.Get("/users/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			return domain.ErrNotFound
@@ -22,12 +22,10 @@ func NewHandler(service domain.Service) http.Handler {
 		if err != nil {
 			return err
 		}
-		viewDTO := newUserViewDTOFromDomain(user)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		return json.NewEncoder(w).Encode(viewDTO)
+		dto := newUserViewDTOFromDomain(user)
+		return jsonResponse(w, dto)
 	}))
-	r.Post("/users/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Post("/users/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		idStr := chi.URLParam(r, "id")
 		if idStr == "new" { // create
 			var dto UserCreateDTO
@@ -62,12 +60,9 @@ func NewHandler(service domain.Service) http.Handler {
 				return err
 			}
 		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_, _ = w.Write([]byte("{}"))
-		return nil
+		return jsonResponse(w, map[string]interface{}{})
 	}))
-	r.Get("/locations/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Get("/locations/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			return domain.ErrNotFound
@@ -76,12 +71,10 @@ func NewHandler(service domain.Service) http.Handler {
 		if err != nil {
 			return err
 		}
-		viewDTO := newLocationViewDTOFromDomain(loc)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		return json.NewEncoder(w).Encode(viewDTO)
+		dto := newLocationViewDTOFromDomain(loc)
+		return jsonResponse(w, dto)
 	}))
-	r.Post("/locations/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Post("/locations/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		idStr := chi.URLParam(r, "id")
 		if idStr == "new" { // create
 			var dto LocationCreateDTO
@@ -116,12 +109,9 @@ func NewHandler(service domain.Service) http.Handler {
 				return err
 			}
 		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_, _ = w.Write([]byte("{}"))
-		return nil
+		return jsonResponse(w, map[string]interface{}{})
 	}))
-	r.Get("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Get("/visits/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			return domain.ErrNotFound
@@ -130,12 +120,10 @@ func NewHandler(service domain.Service) http.Handler {
 		if err != nil {
 			return err
 		}
-		viewDTO := newVisitViewDTOFromDomain(visit)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		return json.NewEncoder(w).Encode(viewDTO)
+		dto := newVisitViewDTOFromDomain(visit)
+		return jsonResponse(w, dto)
 	}))
-	r.Post("/visits/{id}", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Post("/visits/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		idStr := chi.URLParam(r, "id")
 		if idStr == "new" { // create
 			var dto VisitCreateDTO
@@ -170,12 +158,9 @@ func NewHandler(service domain.Service) http.Handler {
 				return err
 			}
 		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_, _ = w.Write([]byte("{}"))
-		return nil
+		return jsonResponse(w, map[string]interface{}{})
 	}))
-	r.Get("/users/{id}/visits", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Get("/users/{id}/visits", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		params := &domain.GetUserVisitsParams{}
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
@@ -217,11 +202,9 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		dto := newUserVisitsDTOFromDomain(visits)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		return json.NewEncoder(w).Encode(dto)
+		return jsonResponse(w, dto)
 	}))
-	r.Get("/locations/{id}/avg", ErrorAware(func(w http.ResponseWriter, r *http.Request) error {
+	r.Get("/locations/{id}/avg", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		params := &domain.GetLocationAvgParams{}
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
@@ -275,14 +258,23 @@ func NewHandler(service domain.Service) http.Handler {
 			return err
 		}
 		dto := newLocationAvgDTOFromDomain(avg)
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		return json.NewEncoder(w).Encode(dto)
+		return jsonResponse(w, dto)
 	}))
 	return r
 }
 
-func ErrorAware(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func jsonResponse(w http.ResponseWriter, data interface{}) error {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b))) // to disable chunked response
+	_, err = w.Write(b)
+	return err
+}
+
+func errorAware(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := f(w, r)
 		if err != nil {
@@ -299,10 +291,9 @@ func ErrorAware(f func(http.ResponseWriter, *http.Request) error) http.HandlerFu
 	}
 }
 
-func SetRequiredHeaders() func(http.Handler) http.Handler {
+func translateConnectionHeader() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Server", "app")
 			connection := r.Header.Get("Connection")
 			if connection != "" {
 				w.Header().Set("Connection", connection)
