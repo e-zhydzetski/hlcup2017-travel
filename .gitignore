@@ -5,5 +5,3 @@
 log/
 logs/
 *.log
-
-/test/data/
