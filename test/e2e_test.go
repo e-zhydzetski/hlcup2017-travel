@@ -27,7 +27,7 @@ func TestE2E(t *testing.T) {
 	service := app.Service{
 		ListenAddr:  ":8080",
 		OptionsFile: "data/" + level + "/data/options.txt",
-		DumpSource:  "data/" + level + "/data",
+		DumpSource:  "data/" + level + "/data/data.zip",
 	}
 	go func() {
 		_ = service.Start(ctx)

@@ -21,7 +21,7 @@ func main() {
 	}
 
 	OptionsFile := "test/data/TRAIN/data/options.txt"
-	DumpSource := "test/data/TRAIN/data"
+	DumpSource := "test/data/TRAIN/data/data.zip"
 	if os.Getenv("DOCKER") == "1" {
 		OptionsFile = "/tmp/data/options.txt"
 		DumpSource = "/tmp/data/data.zip"
