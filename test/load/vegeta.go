@@ -1,6 +1,7 @@
-package helpers
+package load
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"math"
@@ -13,8 +14,8 @@ import (
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/reader"
 )
 
-func ReadVegetaTargets(source io.Reader, targetHostPort string) ([]vegeta.Target, error) {
-	r := reader.NewExtendedReader(source)
+func GenerateVegetaTargetsFromAmmo(ammo io.Reader, targetHostPort string) ([]vegeta.Target, error) {
+	r := reader.NewExtendedReader(ammo)
 
 	var res []vegeta.Target
 
@@ -70,6 +71,11 @@ func ReadVegetaTargets(source io.Reader, targetHostPort string) ([]vegeta.Target
 	return res, nil
 }
 
+type LimitedPacer interface {
+	vegeta.Pacer
+	DurationLimit() time.Duration
+}
+
 type LinearVegetaPacer struct {
 	From     vegeta.Rate
 	To       vegeta.Rate
@@ -98,4 +104,12 @@ func (p LinearVegetaPacer) Pace(elapsed time.Duration, hits uint64) (time.Durati
 	x := ((-2 * b) + math.Sqrt(4*b*b+8*k*S)) / (2 * k)
 
 	return time.Duration(x) - elapsed, false
+}
+
+func (p LinearVegetaPacer) DurationLimit() time.Duration {
+	return p.Duration
+}
+
+func (p LinearVegetaPacer) String() string {
+	return fmt.Sprintf("Line{from %d/%s, to %d/%s, during %s}", p.From.Freq, p.From.Per, p.To.Freq, p.To.Per, p.Duration)
 }
