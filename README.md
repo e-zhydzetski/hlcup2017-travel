@@ -16,6 +16,5 @@
 
 ## Docker machine for Windows
 * `docker-machine.exe create --driver virtualbox --virtualbox-share-folder "d:\\full\\path\\to\\hlcup2017-travel:hlcup2017-travel" --virtualbox-cpu-count "2" --virtualbox-disk-size "20000" --virtualbox-memory "6144" hlcup2017-travel`
-http://support.divio.com/en/articles/646695-how-to-use-a-directory-outside-c-users-with-docker-toolbox-docker-for-windows
-* `docker run --rm -p 8080:80 --name hlcup2017-travel-service -v //hlcup2017-travel//test//data//TRAIN//data://tmp//data stor.highloadcup.ru/travels/curly_leopard`
+* `docker run --rm -p 8080:80 --name hlcup2017-travel-service -v //hlcup2017-travel//test//data//TRAIN//data://tmp//data -v //hlcup2017-travel//profile://profile -e PROFILE_PATH=//profile stor.highloadcup.ru/travels/curly_leopard`
 * `docker stop hlcup2017-travel-service`
