@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/profile"
 
@@ -13,6 +15,11 @@ import (
 func main() {
 	profilePath := os.Getenv("PROFILE_PATH")
 	if profilePath != "" {
+		binaryPath := os.Args[0]
+		if err := copyFile(binaryPath, profilePath+"/"+filepath.Base(binaryPath)); err != nil {
+			log.Println("Can't copy profiled binary:", err)
+			return
+		}
 		defer profile.Start(
 			profile.ProfilePath(profilePath),
 			profile.NoShutdownHook,
@@ -35,4 +42,15 @@ func main() {
 	}
 	err := service.Start(ctx)
 	log.Println("Service stopped:", err)
+}
+
+func copyFile(src, dst string) (err error) {
+	var data []byte
+	if data, err = ioutil.ReadFile(src); err != nil {
+		return
+	}
+	if err = ioutil.WriteFile(dst, data, 0644); err != nil {
+		return
+	}
+	return
 }
