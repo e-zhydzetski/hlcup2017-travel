@@ -1,0 +1,16 @@
+version: '2.2'
+
+services:
+  service:
+    container_name: hlcup2017-travel-service
+    build: .
+    network_mode: host
+    #    ports:
+    #      - 8080:80
+    cpuset: '0'
+    mem_limit: 4g
+    volumes:
+      - /hlcup2017-travel/test/data/TRAIN/data:/tmp/data
+      - /hlcup2017-travel/profile:/profile
+    environment:
+      - PROFILE_PATH=/profile
