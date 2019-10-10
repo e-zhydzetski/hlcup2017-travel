@@ -5,9 +5,7 @@ services:
     container_name: hlcup2017-travel-service
     build: .
     network_mode: host
-    #    ports:
-    #      - 8080:80
-    cpuset: '0'
+    cpu_count: 1
     mem_limit: 4g
     volumes:
       - /hlcup2017-travel/test/data/TRAIN/data:/tmp/data

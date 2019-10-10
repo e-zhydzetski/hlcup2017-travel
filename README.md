@@ -16,4 +16,5 @@
 
 ## Docker machine for Windows (cygwin)
 * `docker-machine.exe create --driver virtualbox --virtualbox-share-folder "d:\\full\\path\\to\\hlcup2017-travel:hlcup2017-travel" --virtualbox-cpu-count "2" --virtualbox-disk-size "20000" --virtualbox-memory "6144" hlcup2017-travel`
-* `docker-compose up`
+* `docker-compose up --build`
+* `go tool pprof -source_path=./workspace -http=:6060 profile/cpu.pprof`

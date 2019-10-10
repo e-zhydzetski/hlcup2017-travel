@@ -10,7 +10,7 @@ WORKDIR /workspace
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -o app cmd/service/main.go
+RUN cd cmd/service && GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -o app
 
 # final stage
 FROM alpine:3.9.4
@@ -21,4 +21,4 @@ ENTRYPOINT ["./app"]
 ENV PORT 80
 EXPOSE $PORT
 ENV DOCKER 1
-COPY --from=builder /workspace/app ./app
+COPY --from=builder /workspace/cmd/service/app ./app
