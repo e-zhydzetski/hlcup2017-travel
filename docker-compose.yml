@@ -2,13 +2,47 @@ version: '2.2'
 
 services:
   service:
-    container_name: hlcup2017-travel-service
+    container_name: service
     build: .
     network_mode: host
-    cpu_count: 1
+    cpuset: '0,1'
     mem_limit: 4g
     volumes:
       - /hlcup2017-travel/test/data/TRAIN/data:/tmp/data
       - /hlcup2017-travel/profile:/profile
     environment:
       - PROFILE_PATH=/profile
+      - GOMAXPROCS=2
+#  prometheus:
+#    container_name: hlcup2017-travel-prometheus
+#    image: prom/prometheus:v2.13.0
+#    network_mode: host
+#    cpuset: '1'
+#    mem_limit: 1g
+#    volumes:
+#      - /hlcup2017-travel/tool/prometheus:/etc/prometheus
+  grafana:
+    image: grafana/grafana:5.4.3
+    container_name: grafana
+    network_mode: host
+#    ports:
+#      - 3000:3000
+    volumes:
+    - /hlcup2017-travel/tool/grafana:/etc/grafana
+#  chronograf:
+#    image: chronograf:1.7.14-alpine
+#    container_name: chronograf
+#    network_mode: host
+#    ports:
+#      - 8888:8888
+#    volumes:
+#      - /hlcup2017-travel/tool/chronograf:/var/lib/chronograf
+#    command: "--influxdb-url=http://127.0.0.1:8086"
+  influxdb:
+    image: influxdb:1.7.8-alpine
+    container_name: influxdb
+    network_mode: host
+    environment:
+      - INFLUXDB_DB=metrics
+#    ports:
+#      - 8086:8086

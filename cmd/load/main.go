@@ -14,6 +14,9 @@ import (
 	vegeta "github.com/tsenart/vegeta/lib"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/test/load"
+
+	_ "github.com/influxdata/influxdb1-client" // this is important because of the bug in go mod
+	influxdb "github.com/influxdata/influxdb1-client/v2"
 )
 
 type Params struct {
@@ -72,13 +75,49 @@ func main() {
 		return
 	}
 
+	influxdbClient, err := influxdb.NewHTTPClient(influxdb.HTTPConfig{
+		Addr: "http://192.168.99.100:8086",
+	})
+	if err != nil {
+		log.Println("Can't create influxdb client:", err)
+		return
+	}
+	defer influxdbClient.Close()
+	bp, err := influxdb.NewBatchPoints(influxdb.BatchPointsConfig{
+		Database: "metrics",
+	})
+	if err != nil {
+		log.Println("Can't create batch points with influxdb client:", err)
+		return
+	}
+
 	log.Println("Attack", params.TargetHostPort, "with profile", pacer, "...")
 
 	var metrics vegeta.Metrics
 	for res := range attacker.Attack(vegeta.NewStaticTargeter(targets...), pacer, pacer.DurationLimit(), "Load") {
 		metrics.Add(res)
+		p, err := influxdb.NewPoint(
+			"response",
+			map[string]string{
+				"code": strconv.Itoa(int(res.Code)),
+			},
+			map[string]interface{}{
+				"latency": res.Latency.Nanoseconds(),
+			},
+			res.Timestamp,
+		)
+		if err != nil {
+			log.Println("Can't create points with influxdb client:", err)
+			return
+		}
+		bp.AddPoint(p)
 	}
 	metrics.Close()
+
+	if err := influxdbClient.Write(bp); err != nil {
+		log.Println("Can't write batch points with influxdb client:", err)
+		return
+	}
 
 	err = vegeta.NewTextReporter(&metrics).Report(os.Stdout)
 	if err != nil {
