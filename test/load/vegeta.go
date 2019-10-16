@@ -89,6 +89,7 @@ type LinearVegetaPacer struct {
 // 2*S = x * (b + k*x + b) = 2*b*x + k*x^2
 // k*x^2 + 2*b*x - 2*S = 0, квадратное уравнение для определения момента времени x когда должна быть S-я атака
 // решаем через дискриминант и получаем x = (-2*b + sqrt(4*b^2 +8*k*S)) / (2*k)
+// если k = 0, константная частота, тогда x = S / b
 func (p LinearVegetaPacer) Pace(elapsed time.Duration, hits uint64) (time.Duration, bool) {
 	if elapsed > p.Duration {
 		return 0, true
@@ -101,7 +102,12 @@ func (p LinearVegetaPacer) Pace(elapsed time.Duration, hits uint64) (time.Durati
 
 	k := (max - b) / float64(tMax)
 
-	x := ((-2 * b) + math.Sqrt(4*b*b+8*k*S)) / (2 * k)
+	var x float64
+	if k == 0 {
+		x = S / b
+	} else {
+		x = ((-2 * b) + math.Sqrt(4*b*b+8*k*S)) / (2 * k)
+	}
 
 	return time.Duration(x) - elapsed, false
 }

@@ -99,7 +99,8 @@ func main() {
 		p, err := influxdb.NewPoint(
 			"response",
 			map[string]string{
-				"code": strconv.Itoa(int(res.Code)),
+				"code":  strconv.Itoa(int(res.Code)),
+				"index": strconv.Itoa(int(metrics.Requests)), // to prevent duplicates
 			},
 			map[string]interface{}{
 				"latency": res.Latency.Nanoseconds(),

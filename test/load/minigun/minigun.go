@@ -104,7 +104,8 @@ func Fire(ctx context.Context, target, ammoFile, profile string) (time.Duration,
 		p, err := influxdb.NewPoint(
 			"response",
 			map[string]string{
-				"code": strconv.Itoa(res.Code),
+				"code":  strconv.Itoa(res.Code),
+				"index": strconv.Itoa(totalCount), // to prevent duplicates
 			},
 			map[string]interface{}{
 				"latency": res.Latency.Nanoseconds(),
