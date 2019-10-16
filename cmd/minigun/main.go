@@ -32,7 +32,7 @@ func (p Params) Validate() error {
 
 func main() {
 	var params Params
-	flag.StringVar(&params.TargetHostPort, "target", "", "target host port: http://127.0.0.1:8080")
+	flag.StringVar(&params.TargetHostPort, "target", "", "target host port: 127.0.0.1:8080")
 	flag.StringVar(&params.AmmoFilePath, "ammo", "", "path to ammo file: /data/ammo/phase_1_get.ammo")
 	flag.StringVar(&params.LoadProfile, "load", "", "load profile: line(1, 100, 30s)")
 	flag.Parse()

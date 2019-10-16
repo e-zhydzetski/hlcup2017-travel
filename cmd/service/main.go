@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/pkg/profile"
 
@@ -26,6 +27,8 @@ func main() {
 			profile.CPUProfile,
 		).Stop()
 	}
+
+	log.Println("GOMAXPROCS =", runtime.GOMAXPROCS(0))
 
 	OptionsFile := "test/data/TRAIN/data/options.txt"
 	DumpSource := "test/data/TRAIN/data/data.zip"
