@@ -5,7 +5,7 @@ services:
     container_name: service
     build: .
     network_mode: host
-    cpuset: '0,1'
+    cpuset: '0'
     mem_limit: 4g
     volumes:
       - /hlcup2017-travel/test/data/TRAIN/data:/tmp/data
@@ -13,7 +13,18 @@ services:
     environment:
       - PROFILE_PATH=/profile
       - GOMAXPROCS=2
-#  prometheus:
+  load:
+    container_name: load
+    build:
+      context: .
+      dockerfile: tool/load/Dockerfile
+    network_mode: host
+    cpuset: '1'
+    mem_limit: 512m
+    volumes:
+      - /hlcup2017-travel/test/data/TRAIN/ammo:/ammo
+    command: '-target http://127.0.0.1 -ammo /ammo/phase_1_get.ammo -load "line(100, 1000, 60s)" -influxdb http://127.0.0.1:8086'
+  #  prometheus:
 #    container_name: hlcup2017-travel-prometheus
 #    image: prom/prometheus:v2.13.0
 #    network_mode: host
@@ -25,6 +36,8 @@ services:
     image: grafana/grafana:5.4.3
     container_name: grafana
     network_mode: host
+    cpuset: '1'
+    mem_limit: 256m
 #    ports:
 #      - 3000:3000
     volumes:
@@ -42,6 +55,8 @@ services:
     image: influxdb:1.7.8-alpine
     container_name: influxdb
     network_mode: host
+    cpuset: '1'
+    mem_limit: 512m
     environment:
       - INFLUXDB_DB=metrics
 #    ports:

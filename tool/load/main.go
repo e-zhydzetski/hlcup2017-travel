@@ -20,9 +20,10 @@ import (
 )
 
 type Params struct {
-	TargetHostPort string
-	AmmoFilePath   string
-	LoadProfile    string
+	TargetHostPort   string
+	AmmoFilePath     string
+	LoadProfile      string
+	InfluxDBHostPort string
 }
 
 func (p Params) Validate() error {
@@ -43,6 +44,7 @@ func main() {
 	flag.StringVar(&params.TargetHostPort, "target", "", "target host port: http://127.0.0.1:8080")
 	flag.StringVar(&params.AmmoFilePath, "ammo", "", "path to ammo file: /data/ammo/phase_1_get.ammo")
 	flag.StringVar(&params.LoadProfile, "load", "", "load profile: line(1, 100, 30s)")
+	flag.StringVar(&params.InfluxDBHostPort, "influxdb", "", "http://127.0.0.1:8086")
 	flag.Parse()
 	if err := params.Validate(); err != nil {
 		log.Println(err)
@@ -75,50 +77,38 @@ func main() {
 		return
 	}
 
-	influxdbClient, err := influxdb.NewHTTPClient(influxdb.HTTPConfig{
-		Addr: "http://192.168.99.100:8086",
-	})
+	dbMetrics, err := NewInfluxDBMetrics(params.InfluxDBHostPort)
 	if err != nil {
-		log.Println("Can't create influxdb client:", err)
+		log.Println("Can't create influxdb metrics:", err)
 		return
 	}
-	defer influxdbClient.Close()
-	bp, err := influxdb.NewBatchPoints(influxdb.BatchPointsConfig{
-		Database: "metrics",
-	})
-	if err != nil {
-		log.Println("Can't create batch points with influxdb client:", err)
-		return
-	}
+	defer dbMetrics.Close()
 
 	log.Println("Attack", params.TargetHostPort, "with profile", pacer, "...")
 
 	var metrics vegeta.Metrics
 	for res := range attacker.Attack(vegeta.NewStaticTargeter(targets...), pacer, pacer.DurationLimit(), "Load") {
 		metrics.Add(res)
-		p, err := influxdb.NewPoint(
-			"response",
-			map[string]string{
-				"code":  strconv.Itoa(int(res.Code)),
-				"index": strconv.Itoa(int(metrics.Requests)), // to prevent duplicates
-			},
-			map[string]interface{}{
-				"latency": res.Latency.Nanoseconds(),
-			},
-			res.Timestamp,
-		)
-		if err != nil {
-			log.Println("Can't create points with influxdb client:", err)
-			return
+		if dbMetrics != nil {
+			p, err := influxdb.NewPoint(
+				"response",
+				map[string]string{
+					"code":  strconv.Itoa(int(res.Code)),
+					"index": strconv.Itoa(int(metrics.Requests)), // to prevent duplicates
+				},
+				map[string]interface{}{
+					"latency": res.Latency.Nanoseconds(),
+				},
+				res.Timestamp,
+			)
+			if err != nil {
+				log.Println("Can't create points with influxdb client:", err)
+				return
+			}
+			dbMetrics.AddPoint(p)
 		}
-		bp.AddPoint(p)
 	}
 	metrics.Close()
-
-	if err := influxdbClient.Write(bp); err != nil {
-		log.Println("Can't write batch points with influxdb client:", err)
-		return
-	}
 
 	err = vegeta.NewTextReporter(&metrics).Report(os.Stdout)
 	if err != nil {
@@ -126,6 +116,38 @@ func main() {
 		return
 	}
 	log.Println("Total latency:", metrics.Latencies.Total.Seconds(), "seconds")
+}
+
+type InfluxDBMetrics struct {
+	client influxdb.Client
+	bp     influxdb.BatchPoints
+}
+
+func (idm *InfluxDBMetrics) Close() error {
+	if err := idm.client.Write(idm.bp); err != nil {
+		return err
+	}
+	return idm.client.Close()
+}
+
+func (idm *InfluxDBMetrics) AddPoint(p *influxdb.Point) {
+	idm.bp.AddPoint(p)
+}
+
+func NewInfluxDBMetrics(influxDBHostPort string) (*InfluxDBMetrics, error) {
+	idm := &InfluxDBMetrics{}
+	var err error
+	if idm.client, err = influxdb.NewHTTPClient(influxdb.HTTPConfig{
+		Addr: influxDBHostPort,
+	}); err != nil {
+		return nil, err
+	}
+	if idm.bp, err = influxdb.NewBatchPoints(influxdb.BatchPointsConfig{
+		Database: "metrics",
+	}); err != nil {
+		return nil, err
+	}
+	return idm, nil
 }
 
 var lineRegexp = regexp.MustCompile(`line\((\d+),\s*(\d+),\s*(\w+)\)`)
