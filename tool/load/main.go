@@ -77,12 +77,15 @@ func main() {
 		return
 	}
 
-	dbMetrics, err := NewInfluxDBMetrics(params.InfluxDBHostPort)
-	if err != nil {
-		log.Println("Can't create influxdb metrics:", err)
-		return
+	var dbMetrics *InfluxDBMetrics
+	if params.InfluxDBHostPort != "" {
+		dbMetrics, err = NewInfluxDBMetrics(params.InfluxDBHostPort)
+		if err != nil {
+			log.Println("Can't create influxdb metrics:", err)
+			return
+		}
+		defer dbMetrics.Close()
 	}
-	defer dbMetrics.Close()
 
 	log.Println("Attack", params.TargetHostPort, "with profile", pacer, "...")
 
@@ -120,34 +123,65 @@ func main() {
 
 type InfluxDBMetrics struct {
 	client influxdb.Client
-	bp     influxdb.BatchPoints
-}
-
-func (idm *InfluxDBMetrics) Close() error {
-	if err := idm.client.Write(idm.bp); err != nil {
-		return err
-	}
-	return idm.client.Close()
-}
-
-func (idm *InfluxDBMetrics) AddPoint(p *influxdb.Point) {
-	idm.bp.AddPoint(p)
+	pc     chan *influxdb.Point
 }
 
 func NewInfluxDBMetrics(influxDBHostPort string) (*InfluxDBMetrics, error) {
 	idm := &InfluxDBMetrics{}
 	var err error
 	if idm.client, err = influxdb.NewHTTPClient(influxdb.HTTPConfig{
-		Addr: influxDBHostPort,
+		Addr:    influxDBHostPort,
+		Timeout: time.Second,
 	}); err != nil {
 		return nil, err
 	}
-	if idm.bp, err = influxdb.NewBatchPoints(influxdb.BatchPointsConfig{
-		Database: "metrics",
-	}); err != nil {
-		return nil, err
-	}
+	idm.pc = make(chan *influxdb.Point, 1024)
+
+	go func() {
+		ticker := time.NewTicker(time.Second * 5)
+		defer ticker.Stop()
+
+		createBatchPoints := func() influxdb.BatchPoints {
+			bp, _ := influxdb.NewBatchPoints(influxdb.BatchPointsConfig{
+				Database: "metrics",
+			}) // error is impossible
+			return bp
+		}
+
+		bp := createBatchPoints()
+
+		stop := false
+		for !stop {
+			select {
+			case p, ok := <-idm.pc:
+				if ok {
+					bp.AddPoint(p)
+					continue
+				}
+				stop = true
+			case <-ticker.C:
+			}
+
+			// in case of tick or final flush on stop
+			if len(bp.Points()) == 0 {
+				continue
+			}
+			if err := idm.client.Write(bp); err == nil {
+				bp = createBatchPoints()
+			}
+		}
+	}()
+
 	return idm, nil
+}
+
+func (idm *InfluxDBMetrics) Close() error {
+	close(idm.pc)
+	return idm.client.Close()
+}
+
+func (idm *InfluxDBMetrics) AddPoint(p *influxdb.Point) {
+	idm.pc <- p
 }
 
 var lineRegexp = regexp.MustCompile(`line\((\d+),\s*(\d+),\s*(\w+)\)`)

@@ -5,7 +5,7 @@ services:
     container_name: service
     build: .
     network_mode: host
-    cpuset: '0'
+    cpuset: '0,1'
     mem_limit: 4g
     volumes:
       - /hlcup2017-travel/test/data/TRAIN/data:/tmp/data
@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: tool/load/Dockerfile
     network_mode: host
-    cpuset: '1'
+    cpuset: '2'
     mem_limit: 512m
     volumes:
       - /hlcup2017-travel/test/data/TRAIN/ammo:/ammo
@@ -28,7 +28,7 @@ services:
 #    container_name: hlcup2017-travel-prometheus
 #    image: prom/prometheus:v2.13.0
 #    network_mode: host
-#    cpuset: '1'
+#    cpuset: '2'
 #    mem_limit: 1g
 #    volumes:
 #      - /hlcup2017-travel/tool/prometheus:/etc/prometheus
@@ -36,7 +36,7 @@ services:
     image: grafana/grafana:5.4.3
     container_name: grafana
     network_mode: host
-    cpuset: '1'
+    cpuset: '2'
     mem_limit: 256m
 #    ports:
 #      - 3000:3000
@@ -55,8 +55,8 @@ services:
     image: influxdb:1.7.8-alpine
     container_name: influxdb
     network_mode: host
-    cpuset: '1'
-    mem_limit: 512m
+    cpuset: '2'
+    mem_limit: 1g
     environment:
       - INFLUXDB_DB=metrics
 #    ports:
