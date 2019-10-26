@@ -2,15 +2,14 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/app"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
-
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
 )
 
-func NewHandler(service domain.Service) http.Handler {
+func NewHandler(service app.Service) http.Handler {
 	emptyJSON := map[string]interface{}{}
 
 	r := chi.NewRouter()
@@ -18,7 +17,7 @@ func NewHandler(service domain.Service) http.Handler {
 	r.Get("/users/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			return domain.ErrNotFound
+			return app.ErrNotFound
 		}
 		user, err := service.GetUser(uint32(id))
 		if err != nil {
@@ -33,7 +32,7 @@ func NewHandler(service domain.Service) http.Handler {
 			var dto UserCreateDTO
 			err := json.NewDecoder(r.Body).Decode(&dto)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			create, err := dto.toValidDomain()
 			if err != nil {
@@ -46,12 +45,12 @@ func NewHandler(service domain.Service) http.Handler {
 		} else { // update
 			id, err := strconv.ParseUint(idStr, 10, 32)
 			if err != nil {
-				return domain.ErrNotFound
+				return app.ErrNotFound
 			}
 			var dto UserUpdateDTO
 			err = json.NewDecoder(r.Body).Decode(&dto)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			update, err := dto.toValidDomain()
 			if err != nil {
@@ -67,7 +66,7 @@ func NewHandler(service domain.Service) http.Handler {
 	r.Get("/locations/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			return domain.ErrNotFound
+			return app.ErrNotFound
 		}
 		loc, err := service.GetLocation(uint32(id))
 		if err != nil {
@@ -82,7 +81,7 @@ func NewHandler(service domain.Service) http.Handler {
 			var dto LocationCreateDTO
 			err := json.NewDecoder(r.Body).Decode(&dto)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			create, err := dto.toValidDomain()
 			if err != nil {
@@ -95,12 +94,12 @@ func NewHandler(service domain.Service) http.Handler {
 		} else { // update
 			id, err := strconv.ParseUint(idStr, 10, 32)
 			if err != nil {
-				return domain.ErrNotFound
+				return app.ErrNotFound
 			}
 			var dto LocationUpdateDTO
 			err = json.NewDecoder(r.Body).Decode(&dto)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			update, err := dto.toValidDomain()
 			if err != nil {
@@ -116,7 +115,7 @@ func NewHandler(service domain.Service) http.Handler {
 	r.Get("/visits/{id}", errorAware(func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			return domain.ErrNotFound
+			return app.ErrNotFound
 		}
 		visit, err := service.GetVisit(uint32(id))
 		if err != nil {
@@ -131,7 +130,7 @@ func NewHandler(service domain.Service) http.Handler {
 			var dto VisitCreateDTO
 			err := json.NewDecoder(r.Body).Decode(&dto)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			create, err := dto.toValidDomain()
 			if err != nil {
@@ -144,12 +143,12 @@ func NewHandler(service domain.Service) http.Handler {
 		} else { // update
 			id, err := strconv.ParseUint(idStr, 10, 32)
 			if err != nil {
-				return domain.ErrNotFound
+				return app.ErrNotFound
 			}
 			var dto VisitUpdateDTO
 			err = json.NewDecoder(r.Body).Decode(&dto)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			update, err := dto.toValidDomain()
 			if err != nil {
@@ -163,10 +162,10 @@ func NewHandler(service domain.Service) http.Handler {
 		return jsonResponse(w, emptyJSON)
 	}))
 	r.Get("/users/{id}/visits", errorAware(func(w http.ResponseWriter, r *http.Request) error {
-		params := &domain.GetUserVisitsParams{}
+		params := &app.GetUserVisitsParams{}
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			return domain.ErrNotFound
+			return app.ErrNotFound
 		}
 		params.UserID = uint32(id)
 		q := r.URL.Query()
@@ -174,7 +173,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if fromDate != "" {
 			d, err := strconv.ParseInt(fromDate, 10, 64)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			params.FromDate = &d
 		}
@@ -182,7 +181,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if toDate != "" {
 			d, err := strconv.ParseInt(toDate, 10, 64)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			params.ToDate = &d
 		}
@@ -194,7 +193,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if toDist != "" {
 			t, err := strconv.ParseUint(toDist, 10, 32)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			d := uint32(t)
 			params.ToDistance = &d
@@ -207,10 +206,10 @@ func NewHandler(service domain.Service) http.Handler {
 		return jsonResponse(w, dto)
 	}))
 	r.Get("/locations/{id}/avg", errorAware(func(w http.ResponseWriter, r *http.Request) error {
-		params := &domain.GetLocationAvgParams{}
+		params := &app.GetLocationAvgParams{}
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			return domain.ErrNotFound
+			return app.ErrNotFound
 		}
 		params.LocationID = uint32(id)
 		q := r.URL.Query()
@@ -218,7 +217,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if fromDate != "" {
 			d, err := strconv.ParseInt(fromDate, 10, 64)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			params.FromDate = &d
 		}
@@ -226,7 +225,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if toDate != "" {
 			d, err := strconv.ParseInt(toDate, 10, 64)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			params.ToDate = &d
 		}
@@ -234,7 +233,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if fromAge != "" {
 			t, err := strconv.ParseUint(fromAge, 10, 32)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			d := uint(t)
 			params.FromAge = &d
@@ -243,7 +242,7 @@ func NewHandler(service domain.Service) http.Handler {
 		if toAge != "" {
 			t, err := strconv.ParseUint(toAge, 10, 32)
 			if err != nil {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			d := uint(t)
 			params.ToAge = &d
@@ -251,7 +250,7 @@ func NewHandler(service domain.Service) http.Handler {
 		gender := q.Get("gender")
 		if gender != "" {
 			if gender != "m" && gender != "f" {
-				return domain.ErrIllegalArgument
+				return app.ErrIllegalArgument
 			}
 			params.Gender = &gender
 		}
@@ -281,9 +280,9 @@ func errorAware(f func(http.ResponseWriter, *http.Request) error) http.HandlerFu
 		err := f(w, r)
 		if err != nil {
 			switch err {
-			case domain.ErrIllegalArgument:
+			case app.ErrIllegalArgument:
 				w.WriteHeader(http.StatusBadRequest)
-			case domain.ErrNotFound:
+			case app.ErrNotFound:
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)

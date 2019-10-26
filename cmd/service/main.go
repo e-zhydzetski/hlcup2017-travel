@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/pkg/profile"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/app"
+	"github.com/pkg/profile"
 )
 
 func main() {
@@ -38,12 +38,12 @@ func main() {
 	}
 
 	ctx := context.Background()
-	service := app.Service{
+	srv := service.Service{
 		ListenAddr:  ":80",
 		OptionsFile: OptionsFile,
 		DumpSource:  DumpSource,
 	}
-	err := service.Start(ctx)
+	err := srv.Start(ctx)
 	log.Println("Service stopped:", err)
 }
 

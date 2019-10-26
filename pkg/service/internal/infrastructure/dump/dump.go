@@ -3,12 +3,11 @@ package dump
 import (
 	"archive/zip"
 	"encoding/json"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/app"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
-
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
 )
 
 type Dump struct {
@@ -104,8 +103,8 @@ func LoadFromZip(path string) (*Dump, error) {
 	return dump, nil
 }
 
-func (d *Dump) ToDomain() *domain.Dump {
-	res := &domain.Dump{} // TODO preallocate slices
+func (d *Dump) ToDomain() *app.Dump {
+	res := &app.Dump{} // TODO preallocate slices
 	for _, u := range d.users {
 		res.Users = append(res.Users, u.toDomainCreateDTO())
 	}

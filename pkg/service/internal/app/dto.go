@@ -1,4 +1,6 @@
-package domain
+package app
+
+import "github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/domain"
 
 type LocationCreateDTO struct {
 	ID       uint32
@@ -8,8 +10,8 @@ type LocationCreateDTO struct {
 	Distance uint32
 }
 
-func (dto *LocationCreateDTO) toDomain() *Location {
-	return &Location{
+func (dto *LocationCreateDTO) toDomain() *domain.Location {
+	return &domain.Location{
 		ID:       dto.ID,
 		Place:    dto.Place,
 		Country:  dto.Country,
@@ -34,8 +36,8 @@ type UserCreateDTO struct {
 	BirthDate int64
 }
 
-func (dto *UserCreateDTO) toDomain() *User {
-	return &User{
+func (dto *UserCreateDTO) toDomain() *domain.User {
+	return &domain.User{
 		ID:        dto.ID,
 		Email:     dto.Email,
 		FirstName: dto.FirstName,
@@ -61,8 +63,8 @@ type VisitCreateDTO struct {
 	Mark       int
 }
 
-func (dto *VisitCreateDTO) toDomain() *Visit {
-	return &Visit{
+func (dto *VisitCreateDTO) toDomain() *domain.Visit {
+	return &domain.Visit{
 		ID:         dto.ID,
 		LocationID: dto.LocationID,
 		UserID:     dto.UserID,

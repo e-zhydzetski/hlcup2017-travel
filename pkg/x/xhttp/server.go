@@ -2,12 +2,11 @@ package xhttp
 
 import (
 	"context"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/x/xerror"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/x/xerror"
 
 	"github.com/go-chi/chi"
 	"golang.org/x/sync/errgroup"

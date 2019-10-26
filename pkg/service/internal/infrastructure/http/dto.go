@@ -1,6 +1,9 @@
 package http
 
-import "github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
+import (
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/app"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/domain"
+)
 
 type UserCreateDTO struct {
 	ID        uint32 `json:"id"`
@@ -11,11 +14,11 @@ type UserCreateDTO struct {
 	BirthDate int64  `json:"birth_date"`
 }
 
-func (d *UserCreateDTO) toValidDomain() (*domain.UserCreateDTO, error) {
+func (d *UserCreateDTO) toValidDomain() (*app.UserCreateDTO, error) {
 	if d.ID == 0 {
-		return nil, domain.ErrIllegalArgument
+		return nil, app.ErrIllegalArgument
 	}
-	return &domain.UserCreateDTO{
+	return &app.UserCreateDTO{
 		ID:        d.ID,
 		Email:     d.Email,
 		FirstName: d.FirstName,
@@ -27,42 +30,42 @@ func (d *UserCreateDTO) toValidDomain() (*domain.UserCreateDTO, error) {
 
 type UserUpdateDTO map[string]interface{}
 
-func (d UserUpdateDTO) toValidDomain() (*domain.UserUpdateDTO, error) {
-	res := &domain.UserUpdateDTO{}
+func (d UserUpdateDTO) toValidDomain() (*app.UserUpdateDTO, error) {
+	res := &app.UserUpdateDTO{}
 	if _, exists := d["id"]; exists {
-		return nil, domain.ErrIllegalArgument
+		return nil, app.ErrIllegalArgument
 	}
 	if val, exists := d["email"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.Email = &s
 	}
 	if val, exists := d["first_name"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.FirstName = &s
 	}
 	if val, exists := d["last_name"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.LastName = &s
 	}
 	if val, exists := d["gender"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.Gender = &s
 	}
 	if val, exists := d["birth_date"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		i := int64(val.(float64))
 		res.BirthDate = &i
@@ -98,11 +101,11 @@ type LocationCreateDTO struct {
 	Distance uint32 `json:"distance"`
 }
 
-func (d *LocationCreateDTO) toValidDomain() (*domain.LocationCreateDTO, error) {
+func (d *LocationCreateDTO) toValidDomain() (*app.LocationCreateDTO, error) {
 	if d.ID == 0 {
-		return nil, domain.ErrIllegalArgument
+		return nil, app.ErrIllegalArgument
 	}
-	return &domain.LocationCreateDTO{
+	return &app.LocationCreateDTO{
 		ID:       d.ID,
 		Place:    d.Place,
 		Country:  d.Country,
@@ -113,35 +116,35 @@ func (d *LocationCreateDTO) toValidDomain() (*domain.LocationCreateDTO, error) {
 
 type LocationUpdateDTO map[string]interface{}
 
-func (d LocationUpdateDTO) toValidDomain() (*domain.LocationUpdateDTO, error) {
-	res := &domain.LocationUpdateDTO{}
+func (d LocationUpdateDTO) toValidDomain() (*app.LocationUpdateDTO, error) {
+	res := &app.LocationUpdateDTO{}
 	if _, exists := d["id"]; exists {
-		return nil, domain.ErrIllegalArgument
+		return nil, app.ErrIllegalArgument
 	}
 	if val, exists := d["place"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.Place = &s
 	}
 	if val, exists := d["country"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.Country = &s
 	}
 	if val, exists := d["city"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		s := val.(string)
 		res.City = &s
 	}
 	if val, exists := d["distance"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		i := uint32(val.(float64))
 		res.Distance = &i
@@ -175,11 +178,11 @@ type VisitCreateDTO struct {
 	Mark       int    `json:"mark"`
 }
 
-func (d *VisitCreateDTO) toValidDomain() (*domain.VisitCreateDTO, error) {
+func (d *VisitCreateDTO) toValidDomain() (*app.VisitCreateDTO, error) {
 	if d.ID == 0 {
-		return nil, domain.ErrIllegalArgument
+		return nil, app.ErrIllegalArgument
 	}
-	return &domain.VisitCreateDTO{
+	return &app.VisitCreateDTO{
 		ID:         d.ID,
 		LocationID: d.LocationID,
 		UserID:     d.UserID,
@@ -190,35 +193,35 @@ func (d *VisitCreateDTO) toValidDomain() (*domain.VisitCreateDTO, error) {
 
 type VisitUpdateDTO map[string]interface{}
 
-func (d VisitUpdateDTO) toValidDomain() (*domain.VisitUpdateDTO, error) {
-	res := &domain.VisitUpdateDTO{}
+func (d VisitUpdateDTO) toValidDomain() (*app.VisitUpdateDTO, error) {
+	res := &app.VisitUpdateDTO{}
 	if _, exists := d["id"]; exists {
-		return nil, domain.ErrIllegalArgument
+		return nil, app.ErrIllegalArgument
 	}
 	if val, exists := d["location"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		i := uint32(val.(float64))
 		res.LocationID = &i
 	}
 	if val, exists := d["user"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		i := uint32(val.(float64))
 		res.UserID = &i
 	}
 	if val, exists := d["visited_at"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		i := int64(val.(float64))
 		res.VisitedAt = &i
 	}
 	if val, exists := d["mark"]; exists {
 		if val == nil {
-			return nil, domain.ErrIllegalArgument
+			return nil, app.ErrIllegalArgument
 		}
 		i := int(val.(float64))
 		res.Mark = &i
@@ -254,7 +257,7 @@ type UserVisitsDTO struct {
 	Visits []*UserVisitDTO `json:"visits"`
 }
 
-func newUserVisitsDTOFromDomain(d *domain.UserVisits) *UserVisitsDTO {
+func newUserVisitsDTOFromDomain(d *app.UserVisits) *UserVisitsDTO {
 	visitsDTO := &UserVisitsDTO{
 		Visits: make([]*UserVisitDTO, len(d.Visits)),
 	}
@@ -269,10 +272,10 @@ func newUserVisitsDTOFromDomain(d *domain.UserVisits) *UserVisitsDTO {
 }
 
 type LocationAvgDTO struct {
-	Avg domain.LocationAvg `json:"avg"`
+	Avg app.LocationAvg `json:"avg"`
 }
 
-func newLocationAvgDTOFromDomain(avg *domain.LocationAvg) *LocationAvgDTO {
+func newLocationAvgDTOFromDomain(avg *app.LocationAvg) *LocationAvgDTO {
 	return &LocationAvgDTO{
 		Avg: *avg,
 	}

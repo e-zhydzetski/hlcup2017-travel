@@ -4,14 +4,11 @@ import (
 	"bufio"
 	"os"
 	"strconv"
+
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/app"
 )
 
-type Options struct {
-	Now  int64
-	Test bool
-}
-
-func NewOptionsFromFile(filePath string) (*Options, error) {
+func NewOptionsFromFile(filePath string) (*app.Options, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -29,7 +26,7 @@ func NewOptionsFromFile(filePath string) (*Options, error) {
 	s = scanner.Text()
 	test := s == "0"
 
-	return &Options{
+	return &app.Options{
 		Now:  now,
 		Test: test,
 	}, nil

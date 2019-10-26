@@ -1,6 +1,9 @@
-package domain
+package app
 
-import "github.com/e-zhydzetski/hlcup2017-travel/internal/x/xerror"
+import (
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/domain"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/x/xerror"
+)
 
 type GetUserVisitsParams struct {
 	UserID     uint32
@@ -37,15 +40,15 @@ const ErrIllegalArgument = xerror.Error("illegal argument")
 type Service interface {
 	CreateUser(createDTO *UserCreateDTO) error
 	UpdateUser(ID uint32, updateDTO *UserUpdateDTO) error
-	GetUser(id uint32) (*User, error)
+	GetUser(id uint32) (*domain.User, error)
 
 	CreateLocation(createDTO *LocationCreateDTO) error
 	UpdateLocation(ID uint32, updateDTO *LocationUpdateDTO) error
-	GetLocation(id uint32) (*Location, error)
+	GetLocation(id uint32) (*domain.Location, error)
 
 	CreateVisit(createDTO *VisitCreateDTO) error
 	UpdateVisit(ID uint32, updateDTO *VisitUpdateDTO) error
-	GetVisit(id uint32) (*Visit, error)
+	GetVisit(id uint32) (*domain.Visit, error)
 
 	GetUserVisits(params *GetUserVisitsParams) (*UserVisits, error)
 	GetLocationAvg(params *GetLocationAvgParams) (*LocationAvg, error)

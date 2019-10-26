@@ -1,6 +1,8 @@
 package dump
 
-import "github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
+import (
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/app"
+)
 
 type User struct {
 	ID        uint32 `json:"id"`
@@ -11,8 +13,8 @@ type User struct {
 	BirthDate int64  `json:"birth_date"`
 }
 
-func (u *User) toDomainCreateDTO() *domain.UserCreateDTO {
-	return &domain.UserCreateDTO{
+func (u *User) toDomainCreateDTO() *app.UserCreateDTO {
+	return &app.UserCreateDTO{
 		ID:        u.ID,
 		Email:     u.Email,
 		FirstName: u.FirstName,
@@ -34,8 +36,8 @@ type Location struct {
 	Distance uint32 `json:"distance"`
 }
 
-func (l *Location) toDomainCreateDTO() *domain.LocationCreateDTO {
-	return &domain.LocationCreateDTO{
+func (l *Location) toDomainCreateDTO() *app.LocationCreateDTO {
+	return &app.LocationCreateDTO{
 		ID:       l.ID,
 		Place:    l.Place,
 		Country:  l.Country,
@@ -56,8 +58,8 @@ type Visit struct {
 	Mark       int    `json:"mark"`
 }
 
-func (v *Visit) toDomainCreateDTO() *domain.VisitCreateDTO {
-	return &domain.VisitCreateDTO{
+func (v *Visit) toDomainCreateDTO() *app.VisitCreateDTO {
+	return &app.VisitCreateDTO{
 		ID:         v.ID,
 		LocationID: v.LocationID,
 		UserID:     v.UserID,

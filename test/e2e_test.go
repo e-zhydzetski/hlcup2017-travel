@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/helpers"
 	"github.com/e-zhydzetski/hlcup2017-travel/test/internal/rawhttp"
-
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/app"
 )
 
 func TestE2E(t *testing.T) {
@@ -24,13 +24,13 @@ func TestE2E(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	service := app.Service{
+	srv := service.Service{
 		ListenAddr:  ":8080",
 		OptionsFile: "data/" + level + "/data/options.txt",
 		DumpSource:  "data/" + level + "/data/data.zip",
 	}
 	go func() {
-		_ = service.Start(ctx)
+		_ = srv.Start(ctx)
 	}()
 
 	for {

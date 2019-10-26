@@ -1,18 +1,18 @@
-package app
+package service
 
 import (
 	"context"
 	"errors"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/app"
 	"log"
 	"strings"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/x/xerror"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/x/xerror"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/domain"
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/dump"
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/http"
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/options"
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/x/xhttp"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/infrastructure/dump"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/infrastructure/http"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/infrastructure/options"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/x/xhttp"
 )
 
 type Service struct {
@@ -28,7 +28,7 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 	log.Println("Options:", *opt)
 
-	var service domain.Service
+	var service app.Service
 	{
 		var d *dump.Dump
 		if strings.HasSuffix(s.DumpSource, ".zip") {
@@ -40,7 +40,7 @@ func (s *Service) Start(ctx context.Context) error {
 				return xerror.Combine(err, errors.New("can't load dump from folder"))
 			}
 		}
-		repository := domain.NewRepositoryFromDump(d.ToDomain())
+		repository := app.NewRepositoryFromDump(d.ToDomain())
 		repository.Opt = *opt
 		service = repository
 	}

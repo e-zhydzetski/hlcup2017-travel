@@ -1,11 +1,11 @@
-package domain
+package app
 
 import (
 	"log"
 	"math"
 	"sort"
 
-	"github.com/e-zhydzetski/hlcup2017-travel/internal/options"
+	"github.com/e-zhydzetski/hlcup2017-travel/pkg/service/internal/domain"
 )
 
 type Dump struct {
@@ -16,9 +16,9 @@ type Dump struct {
 
 func NewRepositoryFromDump(dump *Dump) *Repository {
 	repo := &Repository{
-		users:     make(map[uint32]*User),
-		locations: make(map[uint32]*Location),
-		visits:    make(map[uint32]*Visit),
+		users:     make(map[uint32]*domain.User),
+		locations: make(map[uint32]*domain.Location),
+		visits:    make(map[uint32]*domain.Visit),
 	}
 
 	for _, u := range dump.Users {
@@ -44,12 +44,17 @@ func NewRepositoryFromDump(dump *Dump) *Repository {
 	return repo
 }
 
-type Repository struct {
-	Opt options.Options
+type Options struct {
+	Now  int64
+	Test bool
+}
 
-	users     map[uint32]*User
-	locations map[uint32]*Location
-	visits    map[uint32]*Visit
+type Repository struct {
+	Opt Options
+
+	users     map[uint32]*domain.User
+	locations map[uint32]*domain.Location
+	visits    map[uint32]*domain.Visit
 }
 
 func (r Repository) CreateUser(createDTO *UserCreateDTO) error {
@@ -85,7 +90,7 @@ func (r Repository) UpdateUser(id uint32, updateDTO *UserUpdateDTO) error {
 	return nil
 }
 
-func (r Repository) GetUser(id uint32) (*User, error) {
+func (r Repository) GetUser(id uint32) (*domain.User, error) {
 	u, ok := r.users[id]
 	if !ok {
 		return nil, ErrNotFound
@@ -123,7 +128,7 @@ func (r Repository) UpdateLocation(id uint32, updateDTO *LocationUpdateDTO) erro
 	return nil
 }
 
-func (r Repository) GetLocation(id uint32) (*Location, error) {
+func (r Repository) GetLocation(id uint32) (*domain.Location, error) {
 	l, ok := r.locations[id]
 	if !ok {
 		return nil, ErrNotFound
@@ -161,7 +166,7 @@ func (r Repository) UpdateVisit(id uint32, updateDTO *VisitUpdateDTO) error {
 	return nil
 }
 
-func (r Repository) GetVisit(id uint32) (*Visit, error) {
+func (r Repository) GetVisit(id uint32) (*domain.Visit, error) {
 	v, ok := r.visits[id]
 	if !ok {
 		return nil, ErrNotFound
